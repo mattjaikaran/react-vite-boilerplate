@@ -2,7 +2,7 @@
 
 A modern, production-ready React application boilerplate built with Vite, TypeScript, and a comprehensive set of development tools. This boilerplate provides a solid foundation for building scalable web applications with excellent developer experience and industry best practices.
 
-**🚀 Dual Mode Support**: Works as a standalone SPA or integrates seamlessly with Django applications.
+**Dual Mode Support**: Works as a standalone SPA or integrates seamlessly with Django applications.
 
 ## 📋 Quick Links
 
@@ -21,7 +21,7 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 - **Vite** - Lightning-fast build tool and development server
 - **Bun** - Fast JavaScript runtime and package manager
 
-### 🛣️ Routing & State Management
+### Routing & State Management
 
 - **TanStack Router** - Type-safe routing with automatic code splitting
 - **Zustand** - Lightweight state management with slice pattern
@@ -29,7 +29,7 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 - **React Hook Form** - Performant forms with easy validation
 - **Zod** - TypeScript-first schema validation
 
-### 🎨 UI & Styling
+### UI & Styling
 
 - **Tailwind CSS** - Utility-first CSS framework
 - **Shadcn/ui** - Accessible component library
@@ -37,7 +37,7 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 - **Responsive Design** - Mobile-first approach
 - **Feature Flags** - Conditional component rendering
 
-### 🔐 Authentication
+### Authentication
 
 - **Email/Password Authentication** - Traditional login system
 - **Magic Link Authentication** - Passwordless login option
@@ -100,7 +100,8 @@ src/
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) (recommended) or Node.js 18+
+- [Bun](https://bun.sh/)
+- Node 22
 - Git
 
 ### Installation
@@ -277,10 +278,6 @@ docker run -p 3000:3000 react-vite-boilerplate
 - Update documentation as needed
 - Ensure all checks pass before submitting
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Built With
 
 - [Vite](https://vitejs.dev/) - Next generation frontend tooling
@@ -289,15 +286,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Shadcn/ui](https://ui.shadcn.com/) - Beautifully designed components
 - [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework
 
-## Support
+##
 
-If you have any questions or need help:
-
-1. Check the documentation
-2. Search existing issues
-3. Create a new issue
-4. Contact the maintainer
-
----
-
-Built with care by [Matt Jaikaran](https://github.com/mattjaikaran)
+Built by [Matt Jaikaran](https://github.com/mattjaikaran)
