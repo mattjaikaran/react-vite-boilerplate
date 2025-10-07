@@ -109,7 +109,7 @@ src/
 1. **Clone the repository**
 
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/mattjaikaran/react-vite-boilerplate
    cd react-vite-boilerplate
    ```
 
@@ -136,29 +136,49 @@ src/
 
 ## Available Scripts
 
-### Development
+This project includes a comprehensive Makefile with 50+ commands for development, testing, deployment, and Django integration.
+
+### Quick Start Commands
+
+```bash
+make help            # Show all available commands
+make setup           # Full project setup with dependencies
+make dev             # Start development server
+make build           # Build for production
+make test            # Run tests
+```
+
+### Enhanced Makefile Commands
+
+The project includes powerful Makefile commands organized into categories:
+
+- **Development**: `make dev`, `make dev-open`, `make dev-debug`, `make build`, `make preview`
+- **Shadcn/ui**: `make shadcn-common`, `make shadcn-forms`, `make shadcn-all`, `make add-shadcn-component COMPONENT=button`
+- **Django Integration**: `make django-build`, `make api-schema`, `make api-types`, `make cors-setup`
+- **Code Generation**: `make component NAME=MyComponent`, `make hook NAME=useMyHook`
+- **Testing**: `make test`, `make test-ui`, `make test-coverage`
+- **Utilities**: `make security-audit`, `make performance-test`, `make update-all`
+
+```bash
+# View commands by category
+make help-all        # Show all commands organized by category
+make help-shadcn     # Show shadcn/ui commands
+make help-django     # Show Django integration commands
+make help-utils      # Show utility commands
+```
+
+**📖 Full Documentation**: See [docs/MAKEFILE.md](./docs/MAKEFILE.md) for complete command reference and examples.
+
+### Direct Bun Commands
+
+You can also run commands directly with Bun:
 
 ```bash
 bun run dev          # Start development server
 bun run build        # Build for production
 bun run preview      # Preview production build
-```
-
-### Code Quality
-
-```bash
 bun run lint         # Run ESLint
-bun run lint:fix     # Fix ESLint issues
-bun run format       # Format code with Prettier
-bun run type-check   # Run TypeScript type checking
-```
-
-### Testing
-
-```bash
 bun run test         # Run tests
-bun run test:ui      # Run tests with UI
-bun run test:coverage # Run tests with coverage
 ```
 
 ### Docker
