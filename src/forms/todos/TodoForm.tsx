@@ -80,7 +80,7 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
         await createTodoMutation.mutateAsync(todoData);
       }
       onSuccess?.();
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation hooks
     }
   };

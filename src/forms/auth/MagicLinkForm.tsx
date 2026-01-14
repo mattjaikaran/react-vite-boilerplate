@@ -44,7 +44,7 @@ export function MagicLinkForm({
     try {
       await magicLinkMutation.mutateAsync(data);
       onSuccess?.();
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation hook
     }
   };

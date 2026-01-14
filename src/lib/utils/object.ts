@@ -18,7 +18,7 @@ export function deepClone<T>(obj: T): T {
   if (typeof obj === 'object') {
     const cloned = {} as T;
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         cloned[key] = deepClone(obj[key]);
       }
     }
@@ -30,18 +30,19 @@ export function deepClone<T>(obj: T): T {
 
 export function deepMerge<T extends Record<string, any>>(
   target: T,
-  ...sources: Partial<T>[]
+  ...sources: Array<Partial<T> | Record<string, any>>
 ): T {
   if (!sources.length) return target;
   const source = sources.shift();
 
   if (isObject(target) && isObject(source)) {
     for (const key in source) {
-      if (isObject(source[key])) {
+      const sourceValue = source[key];
+      if (isObject(sourceValue)) {
         if (!target[key]) Object.assign(target, { [key]: {} });
-        deepMerge(target[key], source[key]);
+        deepMerge(target[key] as Record<string, any>, sourceValue);
       } else {
-        Object.assign(target, { [key]: source[key] });
+        Object.assign(target, { [key]: sourceValue });
       }
     }
   }
@@ -109,7 +110,7 @@ export function set<T extends Record<string, any>>(
 ): T {
   const keys = Array.isArray(path) ? path : path.split('.');
   const lastKey = keys.pop()!;
-  let current = obj;
+  let current: Record<string, any> = obj;
 
   for (const key of keys) {
     if (!(key in current) || !isObject(current[key])) {

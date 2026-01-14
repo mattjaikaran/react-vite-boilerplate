@@ -111,7 +111,7 @@ export class StorageManager {
     try {
       let total = 0;
       for (const key in window[storage]) {
-        if (window[storage].hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(window[storage], key)) {
           total += window[storage][key].length + key.length;
         }
       }

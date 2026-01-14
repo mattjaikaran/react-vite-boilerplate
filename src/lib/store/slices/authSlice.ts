@@ -171,7 +171,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
         tokens: mockTokens,
         isLoading: false,
       });
-    } catch (error) {
+    } catch {
       // If refresh fails, logout user
       get().logout();
     }

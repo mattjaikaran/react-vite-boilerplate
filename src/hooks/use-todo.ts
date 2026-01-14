@@ -15,10 +15,16 @@ import {
 } from '@tanstack/react-query';
 
 // Todo hooks
-export const useTodos = (params?: QueryParams, options?: UseQueryOptions) => {
-  return useQuery({
+export const useTodos = (
+  params?: QueryParams,
+  options?: Omit<UseQueryOptions<Todo[], Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<Todo[], Error>({
     queryKey: todoQueryKeys.list(params),
-    queryFn: () => todosApi.getTodos(params),
+    queryFn: async () => {
+      const result = await todosApi.getTodos(params);
+      return result.data;
+    },
     ...options,
   });
 };
@@ -151,8 +157,18 @@ export const useToggleTodo = (
   });
 };
 
-export const useTodoStats = (options?: UseQueryOptions) => {
-  return useQuery({
+interface TodoStats {
+  total: number;
+  completed: number;
+  pending: number;
+  overdue: number;
+  byPriority: Record<string, number>;
+}
+
+export const useTodoStats = (
+  options?: Omit<UseQueryOptions<TodoStats, Error>, 'queryKey' | 'queryFn'>
+) => {
+  return useQuery<TodoStats, Error>({
     queryKey: todoQueryKeys.stats(),
     queryFn: todosApi.getStats,
     ...options,

@@ -70,11 +70,7 @@ export async function parallel<T>(
     const currentIndex = index++;
     if (currentIndex >= promises.length) return;
 
-    try {
-      results[currentIndex] = await promises[currentIndex];
-    } catch (error) {
-      throw error;
-    }
+    results[currentIndex] = await promises[currentIndex];
 
     await runNext();
   }
@@ -189,7 +185,7 @@ export async function poll<T>(
       if (condition(result)) {
         return result;
       }
-    } catch (error) {
+    } catch {
       // Continue polling on error
     }
 
@@ -202,7 +198,6 @@ export async function poll<T>(
 
 export class AsyncQueue<T> {
   private queue: Array<() => Promise<T>> = [];
-  private running = false;
   private concurrency: number;
   private activeCount = 0;
 

@@ -63,7 +63,7 @@ const faqData: FAQItem[] = [
   },
 ];
 
-function FAQItem({ item }: { item: FAQItem }) {
+function FAQItemCard({ item }: { item: FAQItem }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -103,7 +103,7 @@ function FAQPage() {
       <div className="mt-12">
         <div className="divide-y divide-border">
           {faqData.map(item => (
-            <FAQItem key={item.id} item={item} />
+            <FAQItemCard key={item.id} item={item} />
           ))}
         </div>
       </div>
