@@ -671,3 +671,38 @@ list-features: ## List available optional features
 help-features: ## Show optional features commands
 	@echo "Optional Features Commands:"
 	@grep -E '^(setup-ssr|disable-ssr|setup-rsc|disable-rsc|add-feature|remove-feature|list-features):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+# ==================================
+# Monorepo Commands
+# ==================================
+
+setup-monorepo: ## Setup frontend for monorepo with Django backend
+	@echo "Setting up monorepo configuration..."
+	@./scripts/setup-monorepo.sh
+
+dev-monorepo: ## Start frontend in monorepo mode (proxies to Django)
+	@echo "Starting frontend in monorepo mode..."
+	bun run dev --config vite.config.monorepo.ts
+
+build-monorepo: ## Build frontend for Django integration
+	@echo "Building frontend for monorepo deployment..."
+	@make clean
+	bun run build --config vite.config.monorepo.ts
+	@make django-prep
+	@echo "Build complete! Copy dist/ to your Django static files"
+
+docker-monorepo: ## Start full monorepo stack with Docker
+	@echo "Starting monorepo Docker stack..."
+	docker-compose -f docker-compose.monorepo.yml up --build
+
+docker-monorepo-down: ## Stop monorepo Docker stack
+	@echo "Stopping monorepo Docker stack..."
+	docker-compose -f docker-compose.monorepo.yml down
+
+docker-monorepo-prod: ## Start monorepo stack with nginx reverse proxy
+	@echo "Starting production monorepo stack..."
+	docker-compose -f docker-compose.monorepo.yml --profile production up --build
+
+help-monorepo: ## Show monorepo commands
+	@echo "Monorepo Commands:"
+	@grep -E '^(setup-monorepo|dev-monorepo|build-monorepo|docker-monorepo):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'

@@ -17,6 +17,15 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 /**
+ * Django Ninja error response types
+ */
+interface DjangoErrorResponse {
+  detail?: string | { msg: string; loc: string[] }[];
+  message?: string;
+  code?: string;
+}
+
+/**
  * Create axios instance with default config
  */
 const createApiInstance = (): AxiosInstance => {
@@ -26,6 +35,8 @@ const createApiInstance = (): AxiosInstance => {
     headers: {
       'Content-Type': 'application/json',
     },
+    // Include credentials for CSRF cookies
+    withCredentials: isDjangoSPA(),
   });
 
   // Request interceptor to add auth token and Django CSRF
@@ -57,13 +68,7 @@ const createApiInstance = (): AxiosInstance => {
     (response: AxiosResponse) => {
       return response;
     },
-    async (
-      error: AxiosError<{
-        message?: string;
-        code?: string;
-        details?: Record<string, string | string[]>;
-      }>
-    ) => {
+    async (error: AxiosError<DjangoErrorResponse>) => {
       const originalRequest = error.config as
         | ExtendedAxiosRequestConfig
         | undefined;
@@ -82,17 +87,35 @@ const createApiInstance = (): AxiosInstance => {
             config.auth.refreshTokenKey
           );
           if (refreshToken) {
-            const response = await instance.post<
-              ApiResponse<{ accessToken: string }>
-            >('/auth/refresh', {
-              refreshToken,
-            });
+            // Django Ninja JWT uses /token/refresh with 'refresh' field
+            const refreshPath = isDjangoSPA()
+              ? '/token/refresh'
+              : '/auth/refresh';
+            const refreshPayload = isDjangoSPA()
+              ? { refresh: refreshToken }
+              : { refreshToken };
 
-            const { accessToken } = response.data.data;
-            localStorage.setItem(config.auth.tokenKey, accessToken);
+            const response = await instance.post<
+              ApiResponse<{ accessToken: string }> | { access: string }
+            >(refreshPath, refreshPayload);
+
+            // Handle both response formats
+            let newToken: string;
+            if ('access' in response.data) {
+              newToken = response.data.access;
+            } else if (
+              'data' in response.data &&
+              response.data.data?.accessToken
+            ) {
+              newToken = response.data.data.accessToken;
+            } else {
+              throw new Error('Invalid refresh response');
+            }
+
+            localStorage.setItem(config.auth.tokenKey, newToken);
 
             // Retry original request with new token
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return instance(originalRequest);
           }
         } catch (refreshError) {
@@ -103,7 +126,7 @@ const createApiInstance = (): AxiosInstance => {
 
           // Redirect based on mode
           if (isDjangoSPA()) {
-            window.location.href = '/admin/login/';
+            window.location.href = '/auth/login';
           } else {
             window.location.href = '/auth/login';
           }
@@ -111,12 +134,27 @@ const createApiInstance = (): AxiosInstance => {
         }
       }
 
+      // Extract error message from various formats
+      let errorMessage = 'An error occurred';
+      const responseData = error.response?.data;
+
+      if (responseData) {
+        if (typeof responseData.detail === 'string') {
+          errorMessage = responseData.detail;
+        } else if (Array.isArray(responseData.detail)) {
+          errorMessage = responseData.detail.map(d => d.msg).join(', ');
+        } else if (responseData.message) {
+          errorMessage = responseData.message;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       // Transform error response
       const apiError: ApiError = {
-        message:
-          error.response?.data?.message || error.message || 'An error occurred',
-        code: error.response?.data?.code || error.code,
-        details: error.response?.data?.details,
+        message: errorMessage,
+        code: responseData?.code || error.code,
+        details: undefined,
       };
 
       return Promise.reject(apiError);
