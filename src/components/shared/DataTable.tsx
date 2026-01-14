@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { SkeletonTable } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -22,6 +23,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  OnChangeFn,
+  PaginationState,
   SortingState,
   useReactTable,
   VisibilityState,
@@ -32,8 +35,19 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Loader2,
 } from 'lucide-react';
 import { useState } from 'react';
+
+/**
+ * Server-side pagination info (Django Ninja format)
+ */
+interface ServerPagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -43,6 +57,16 @@ interface DataTableProps<TData, TValue> {
   showColumnToggle?: boolean;
   showPagination?: boolean;
   pageSize?: number;
+  /** Loading state */
+  isLoading?: boolean;
+  /** Server-side pagination (for Django integration) */
+  serverPagination?: ServerPagination;
+  /** Callback for server-side pagination */
+  onPaginationChange?: (page: number, pageSize: number) => void;
+  /** Callback for server-side search */
+  onSearchChange?: (search: string) => void;
+  /** Debounce delay for search (ms) */
+  searchDebounce?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -53,11 +77,53 @@ export function DataTable<TData, TValue>({
   showColumnToggle = true,
   showPagination = true,
   pageSize = 10,
+  isLoading = false,
+  serverPagination,
+  onPaginationChange,
+  onSearchChange,
+  searchDebounce = 300,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
+  const [searchValue, setSearchValue] = useState('');
+
+  // Debounced search for server-side
+  const [searchTimeout, setSearchTimeout] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+
+    if (onSearchChange) {
+      // Server-side search with debounce
+      if (searchTimeout) clearTimeout(searchTimeout);
+      setSearchTimeout(
+        setTimeout(() => {
+          onSearchChange(value);
+        }, searchDebounce)
+      );
+    }
+  };
+
+  // Server-side pagination state
+  const isServerSide = !!serverPagination;
+  const pagination: PaginationState = isServerSide
+    ? {
+        pageIndex: serverPagination.page - 1,
+        pageSize: serverPagination.pageSize,
+      }
+    : { pageIndex: 0, pageSize };
+
+  const handlePaginationChange: OnChangeFn<PaginationState> = updater => {
+    if (!onPaginationChange) return;
+
+    const newState =
+      typeof updater === 'function' ? updater(pagination) : updater;
+    onPaginationChange(newState.pageIndex + 1, newState.pageSize);
+  };
 
   const table = useReactTable({
     data,
@@ -65,40 +131,78 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: isServerSide ? undefined : getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    getFilteredRowModel: isServerSide ? undefined : getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    initialState: {
-      pagination: {
-        pageSize,
-      },
-    },
+    ...(isServerSide
+      ? {
+          manualPagination: true,
+          manualFiltering: true,
+          pageCount: serverPagination.totalPages,
+          onPaginationChange: handlePaginationChange,
+        }
+      : {
+          initialState: {
+            pagination: {
+              pageSize,
+            },
+          },
+        }),
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      ...(isServerSide && { pagination }),
     },
   });
+
+  // Show skeleton while loading
+  if (isLoading && data.length === 0) {
+    return <SkeletonTable rows={pageSize} columns={columns.length} />;
+  }
+
+  const currentPage = isServerSide
+    ? serverPagination.page
+    : table.getState().pagination.pageIndex + 1;
+  const totalPages = isServerSide
+    ? serverPagination.totalPages
+    : table.getPageCount();
+  const totalRows = isServerSide
+    ? serverPagination.total
+    : table.getFilteredRowModel().rows.length;
 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
-          {searchKey && (
-            <Input
-              placeholder={searchPlaceholder}
-              value={
-                (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
-              }
-              onChange={event =>
-                table.getColumn(searchKey)?.setFilterValue(event.target.value)
-              }
-              className="max-w-sm"
-            />
+          {(searchKey || onSearchChange) && (
+            <div className="relative">
+              <Input
+                placeholder={searchPlaceholder}
+                value={
+                  onSearchChange
+                    ? searchValue
+                    : ((table
+                        .getColumn(searchKey!)
+                        ?.getFilterValue() as string) ?? '')
+                }
+                onChange={event =>
+                  onSearchChange
+                    ? handleSearchChange(event.target.value)
+                    : table
+                        .getColumn(searchKey!)
+                        ?.setFilterValue(event.target.value)
+                }
+                className="max-w-sm"
+              />
+              {isLoading && (
+                <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+              )}
+            </div>
           )}
         </div>
 
@@ -188,36 +292,59 @@ export function DataTable<TData, TValue>({
       {showPagination && (
         <div className="flex items-center justify-between px-2">
           <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{' '}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+            {isServerSide ? (
+              <>
+                Showing {data.length} of {totalRows} row(s)
+              </>
+            ) : (
+              <>
+                {table.getFilteredSelectedRowModel().rows.length} of {totalRows}{' '}
+                row(s) selected.
+              </>
+            )}
           </div>
           <div className="flex items-center space-x-6 lg:space-x-8">
             <div className="flex items-center space-x-2">
               <p className="text-sm font-medium">Rows per page</p>
               <select
-                value={table.getState().pagination.pageSize}
+                value={
+                  isServerSide
+                    ? serverPagination.pageSize
+                    : table.getState().pagination.pageSize
+                }
                 onChange={e => {
-                  table.setPageSize(Number(e.target.value));
+                  const newSize = Number(e.target.value);
+                  if (onPaginationChange) {
+                    onPaginationChange(1, newSize); // Reset to page 1 on size change
+                  } else {
+                    table.setPageSize(newSize);
+                  }
                 }}
                 className="h-8 w-[70px] rounded border border-input bg-background px-2 text-sm"
+                disabled={isLoading}
               >
-                {[10, 20, 30, 40, 50].map(pageSize => (
-                  <option key={pageSize} value={pageSize}>
-                    {pageSize}
+                {[10, 20, 30, 40, 50].map(size => (
+                  <option key={size} value={size}>
+                    {size}
                   </option>
                 ))}
               </select>
             </div>
             <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{' '}
-              {table.getPageCount()}
+              Page {currentPage} of {totalPages || 1}
             </div>
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
+                onClick={() => {
+                  if (onPaginationChange) {
+                    onPaginationChange(1, serverPagination!.pageSize);
+                  } else {
+                    table.setPageIndex(0);
+                  }
+                }}
+                disabled={currentPage <= 1 || isLoading}
               >
                 <span className="sr-only">Go to first page</span>
                 <ChevronsLeft className="h-4 w-4" />
@@ -225,8 +352,17 @@ export function DataTable<TData, TValue>({
               <Button
                 variant="outline"
                 className="h-8 w-8 p-0"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
+                onClick={() => {
+                  if (onPaginationChange) {
+                    onPaginationChange(
+                      currentPage - 1,
+                      serverPagination!.pageSize
+                    );
+                  } else {
+                    table.previousPage();
+                  }
+                }}
+                disabled={currentPage <= 1 || isLoading}
               >
                 <span className="sr-only">Go to previous page</span>
                 <ChevronLeft className="h-4 w-4" />
@@ -234,8 +370,17 @@ export function DataTable<TData, TValue>({
               <Button
                 variant="outline"
                 className="h-8 w-8 p-0"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
+                onClick={() => {
+                  if (onPaginationChange) {
+                    onPaginationChange(
+                      currentPage + 1,
+                      serverPagination!.pageSize
+                    );
+                  } else {
+                    table.nextPage();
+                  }
+                }}
+                disabled={currentPage >= totalPages || isLoading}
               >
                 <span className="sr-only">Go to next page</span>
                 <ChevronRight className="h-4 w-4" />
@@ -243,8 +388,14 @@ export function DataTable<TData, TValue>({
               <Button
                 variant="outline"
                 className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
+                onClick={() => {
+                  if (onPaginationChange) {
+                    onPaginationChange(totalPages, serverPagination!.pageSize);
+                  } else {
+                    table.setPageIndex(totalPages - 1);
+                  }
+                }}
+                disabled={currentPage >= totalPages || isLoading}
               >
                 <span className="sr-only">Go to last page</span>
                 <ChevronsRight className="h-4 w-4" />

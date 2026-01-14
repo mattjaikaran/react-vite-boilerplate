@@ -5,6 +5,48 @@
 import { config, isDjangoSPA } from '@/config';
 
 /**
+ * Django user data type
+ */
+export interface DjangoUser {
+  id: number | string;
+  username: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  is_staff?: boolean;
+  is_superuser?: boolean;
+}
+
+/**
+ * Django settings type
+ */
+export interface DjangoSettings {
+  DEBUG?: boolean;
+  LANGUAGE_CODE?: string;
+  TIME_ZONE?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Django message type
+ */
+export interface DjangoMessage {
+  level: string;
+  message: string;
+  tags: string;
+}
+
+// Extend Window interface for Django globals
+declare global {
+  interface Window {
+    __DJANGO_USER__?: DjangoUser;
+    __DJANGO_SETTINGS__?: DjangoSettings;
+    __DJANGO_URLS__?: Record<string, string>;
+    __DJANGO_MESSAGES__?: DjangoMessage[];
+  }
+}
+
+/**
  * Get CSRF token from Django
  */
 export function getCSRFToken(): string | null {
@@ -35,11 +77,11 @@ export function getCSRFToken(): string | null {
 /**
  * Get Django user data from window object or DOM
  */
-export function getDjangoUser(): any {
+export function getDjangoUser(): DjangoUser | null {
   if (!isDjangoSPA()) return null;
 
   // Check if Django user data is available in window
-  const windowUser = (window as any).__DJANGO_USER__;
+  const windowUser = window.__DJANGO_USER__;
   if (windowUser) {
     return windowUser;
   }
@@ -48,7 +90,7 @@ export function getDjangoUser(): any {
   const userScript = document.getElementById('django-user-data');
   if (userScript) {
     try {
-      return JSON.parse(userScript.textContent || '{}');
+      return JSON.parse(userScript.textContent || '{}') as DjangoUser;
     } catch (error) {
       console.warn('Failed to parse Django user data:', error);
     }
@@ -60,10 +102,10 @@ export function getDjangoUser(): any {
 /**
  * Get Django settings/config from window object
  */
-export function getDjangoSettings(): any {
+export function getDjangoSettings(): DjangoSettings {
   if (!isDjangoSPA()) return {};
 
-  return (window as any).__DJANGO_SETTINGS__ || {};
+  return window.__DJANGO_SETTINGS__ || {};
 }
 
 /**
@@ -113,6 +155,11 @@ export function initializeDjangoSPA(): void {
 }
 
 /**
+ * Form data value types
+ */
+type FormDataValue = string | number | boolean | File | (string | number)[];
+
+/**
  * Django form helpers
  */
 export class DjangoFormHelper {
@@ -127,7 +174,7 @@ export class DjangoFormHelper {
     return formData;
   }
 
-  static createFormData(data: Record<string, any>): FormData {
+  static createFormData(data: Record<string, FormDataValue>): FormData {
     const formData = new FormData();
 
     Object.entries(data).forEach(([key, value]) => {
@@ -135,7 +182,7 @@ export class DjangoFormHelper {
         formData.append(key, value);
       } else if (Array.isArray(value)) {
         value.forEach((item, index) => {
-          formData.append(`${key}[${index}]`, item);
+          formData.append(`${key}[${index}]`, String(item));
         });
       } else if (value !== null && value !== undefined) {
         formData.append(key, String(value));
@@ -150,11 +197,14 @@ export class DjangoFormHelper {
  * Django URL helpers
  */
 export class DjangoUrlHelper {
-  static reverse(viewName: string, args: Record<string, any> = {}): string {
+  static reverse(
+    viewName: string,
+    args: Record<string, string | number> = {}
+  ): string {
     if (!isDjangoSPA()) return viewName;
 
     // Check if Django URL reverse function is available
-    const djangoUrls = (window as any).__DJANGO_URLS__;
+    const djangoUrls = window.__DJANGO_URLS__;
     if (djangoUrls && djangoUrls[viewName]) {
       let url = djangoUrls[viewName];
 
@@ -179,20 +229,15 @@ export class DjangoUrlHelper {
  * Django message framework integration
  */
 export class DjangoMessages {
-  static getMessages(): Array<{
-    level: string;
-    message: string;
-    tags: string;
-  }> {
+  static getMessages(): DjangoMessage[] {
     if (!isDjangoSPA()) return [];
 
-    const messages = (window as any).__DJANGO_MESSAGES__ || [];
-    return messages;
+    return window.__DJANGO_MESSAGES__ || [];
   }
 
   static clearMessages(): void {
     if (typeof window !== 'undefined') {
-      (window as any).__DJANGO_MESSAGES__ = [];
+      window.__DJANGO_MESSAGES__ = [];
     }
   }
 }

@@ -29,7 +29,9 @@ export const Route = createFileRoute('/dashboard' as any)({
 
 function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useTodoStats();
-  const { data: todosData, isLoading: todosLoading } = useTodos({ limit: 5 });
+  const { data: todosData, isLoading: todosLoading } = useTodos({
+    page_size: 5,
+  });
 
   // Mock data for charts (in real app, this would come from API)
   const weeklyActivityData = [

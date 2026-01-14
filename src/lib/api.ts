@@ -1,9 +1,24 @@
 import { config, isDjangoSPA } from '@/config';
 import { getCSRFToken } from '@/lib/django-integration';
-import type { ApiError, ApiResponse } from '@/types';
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { ApiError, ApiResponse, QueryParams } from '@/types';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios';
 
-// Create axios instance with default config
+/**
+ * Extended request config with retry flag
+ */
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
+/**
+ * Create axios instance with default config
+ */
 const createApiInstance = (): AxiosInstance => {
   const instance = axios.create({
     baseURL: config.api.baseUrl,
@@ -15,7 +30,7 @@ const createApiInstance = (): AxiosInstance => {
 
   // Request interceptor to add auth token and Django CSRF
   instance.interceptors.request.use(
-    requestConfig => {
+    (requestConfig: InternalAxiosRequestConfig) => {
       // Add auth token
       const token = localStorage.getItem(config.auth.tokenKey);
       if (token) {
@@ -32,21 +47,33 @@ const createApiInstance = (): AxiosInstance => {
 
       return requestConfig;
     },
-    error => {
+    (error: AxiosError) => {
       return Promise.reject(error);
     }
   );
 
   // Response interceptor to handle common responses
   instance.interceptors.response.use(
-    (response: AxiosResponse<ApiResponse>) => {
+    (response: AxiosResponse) => {
       return response;
     },
-    async error => {
-      const originalRequest = error.config;
+    async (
+      error: AxiosError<{
+        message?: string;
+        code?: string;
+        details?: Record<string, string | string[]>;
+      }>
+    ) => {
+      const originalRequest = error.config as
+        | ExtendedAxiosRequestConfig
+        | undefined;
 
       // Handle 401 errors (unauthorized)
-      if (error.response?.status === 401 && !originalRequest._retry) {
+      if (
+        error.response?.status === 401 &&
+        originalRequest &&
+        !originalRequest._retry
+      ) {
         originalRequest._retry = true;
 
         try {
@@ -55,7 +82,9 @@ const createApiInstance = (): AxiosInstance => {
             config.auth.refreshTokenKey
           );
           if (refreshToken) {
-            const response = await instance.post('/auth/refresh', {
+            const response = await instance.post<
+              ApiResponse<{ accessToken: string }>
+            >('/auth/refresh', {
               refreshToken,
             });
 
@@ -100,38 +129,42 @@ const createApiInstance = (): AxiosInstance => {
 // Create the main API instance
 export const api = createApiInstance();
 
-// Generic API methods
+/**
+ * Generic API methods with proper typing
+ */
 export const apiClient = {
-  get: <T = any>(
+  get: <T = unknown>(
     url: string,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<ApiResponse<T>>> => api.get(url, config),
 
-  post: <T = any>(
+  post: <T = unknown, D = unknown>(
     url: string,
-    data?: any,
+    data?: D,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<ApiResponse<T>>> => api.post(url, data, config),
 
-  put: <T = any>(
+  put: <T = unknown, D = unknown>(
     url: string,
-    data?: any,
+    data?: D,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<ApiResponse<T>>> => api.put(url, data, config),
 
-  patch: <T = any>(
+  patch: <T = unknown, D = unknown>(
     url: string,
-    data?: any,
+    data?: D,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<ApiResponse<T>>> => api.patch(url, data, config),
 
-  delete: <T = any>(
+  delete: <T = unknown>(
     url: string,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<ApiResponse<T>>> => api.delete(url, config),
 };
 
-// Utility function to handle API responses
+/**
+ * Utility function to handle API responses
+ */
 export const handleApiResponse = <T>(
   response: AxiosResponse<ApiResponse<T>>
 ): T => {
@@ -141,22 +174,39 @@ export const handleApiResponse = <T>(
   throw new Error(response.data.message || 'API request failed');
 };
 
-// Utility function to create query keys for React Query
+/**
+ * Utility function to create query keys for React Query
+ */
 export const createQueryKey = (
   key: string,
-  params?: Record<string, any>
-): string[] => {
+  params?: QueryParams | Record<string, string | number | boolean | undefined>
+): (
+  | string
+  | QueryParams
+  | Record<string, string | number | boolean | undefined>
+)[] => {
   if (!params) return [key];
+  return [key, params];
+};
 
-  const sortedParams = Object.keys(params)
-    .sort()
-    .reduce(
-      (result, key) => {
-        result[key] = params[key];
-        return result;
-      },
-      {} as Record<string, any>
-    );
+/**
+ * Build query string from params object
+ */
+export const buildQueryString = (params: QueryParams): string => {
+  const searchParams = new URLSearchParams();
 
-  return [key, JSON.stringify(sortedParams)];
+  if (params.page) searchParams.set('page', String(params.page));
+  if (params.page_size) searchParams.set('page_size', String(params.page_size));
+  if (params.search) searchParams.set('search', params.search);
+  if (params.ordering) searchParams.set('ordering', params.ordering);
+
+  if (params.filters) {
+    Object.entries(params.filters).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.set(key, String(value));
+      }
+    });
+  }
+
+  return searchParams.toString();
 };

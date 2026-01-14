@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { createAuthSlice, type AuthSlice } from './slices/authSlice';
+import { createConfigSlice, type ConfigSlice } from './slices/configSlice';
 import { createTodoSlice, type TodoSlice } from './slices/todoSlice';
 import { createUISlice, type UISlice } from './slices/uiSlice';
 
 // Combined store type
-export type AppStore = AuthSlice & TodoSlice & UISlice;
+export type AppStore = AuthSlice & TodoSlice & UISlice & ConfigSlice;
 
 // Create the store with all slices
 export const useStore = create<AppStore>()(
@@ -15,14 +16,16 @@ export const useStore = create<AppStore>()(
         ...createAuthSlice(...args),
         ...createTodoSlice(...args),
         ...createUISlice(...args),
+        ...createConfigSlice(...args),
       }),
       {
         name: 'app-store',
         partialize: state => ({
-          // Only persist UI theme and auth tokens
+          // Only persist UI theme
           theme: state.theme,
           // Don't persist auth state as it's handled separately in localStorage
           // Don't persist todos as they should be fetched fresh
+          // Don't persist config as it comes from env
         }),
       }
     ),
@@ -85,8 +88,44 @@ export const useUI = () =>
     clearNotifications: state.clearNotifications,
   }));
 
-// Initialize auth on app start
+export const useAppConfig = () =>
+  useStore(state => ({
+    config: state.config,
+    isDjangoSPA: state.isDjangoSPA,
+    isStandalone: state.isStandalone,
+    updateConfig: state.updateConfig,
+    isFeatureEnabled: state.isFeatureEnabled,
+    setFeature: state.setFeature,
+  }));
+
+// Granular selectors for minimal re-renders
+export const useTheme = () => useStore(state => state.theme);
+export const useSetTheme = () => useStore(state => state.setTheme);
+export const useToggleTheme = () => useStore(state => state.toggleTheme);
+export const useIsDjangoSPA = () => useStore(state => state.isDjangoSPA);
+export const useIsStandalone = () => useStore(state => state.isStandalone);
+export const useFeatureEnabled = (
+  feature: keyof AppStore['config']['features']
+) => useStore(state => state.config.features[feature]);
+export const useApiConfig = () => useStore(state => state.config.api);
+export const useAuthConfig = () => useStore(state => state.config.auth);
+export const useDjangoConfig = () => useStore(state => state.config.django);
+export const useEnvConfig = () => useStore(state => state.config.env);
+
+// Initialize store on app start
 export const initializeStore = () => {
-  const { initializeAuth } = useStore.getState();
+  const { initializeAuth, setTheme, theme } = useStore.getState();
   initializeAuth();
+
+  // Apply initial theme to DOM (no useEffect needed)
+  const savedTheme = localStorage.getItem('theme');
+  if (
+    savedTheme &&
+    (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system')
+  ) {
+    setTheme(savedTheme);
+  } else {
+    // Apply current theme to DOM
+    setTheme(theme);
+  }
 };

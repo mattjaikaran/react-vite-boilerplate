@@ -1,4 +1,3 @@
-import { useTheme } from '@/components/providers/theme-provider';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -6,10 +5,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useSetTheme } from '@/lib/store';
 import { Moon, Sun } from 'lucide-react';
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const setTheme = useSetTheme();
 
   return (
     <DropdownMenu>

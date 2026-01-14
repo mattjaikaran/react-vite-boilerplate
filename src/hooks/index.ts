@@ -93,8 +93,26 @@ export {
 } from './utils';
 
 // ============================================
+// Store Hooks - Config and Theme (Zustand)
+// ============================================
+export {
+  useApiConfig,
+  useAppConfig,
+  useAuth,
+  useAuthConfig,
+  useDjangoConfig,
+  useEnvConfig,
+  useFeatureEnabled,
+  useIsDjangoSPA,
+  useIsStandalone,
+  useSetTheme,
+  useTheme,
+  useTodos as useTodosStore,
+  useToggleTheme,
+  useUI,
+} from '@/lib/store';
+
+// ============================================
 // Legacy exports for backwards compatibility
 // ============================================
-// These re-export from existing files that may be used elsewhere
-// Can be removed after full migration
 export * from './use-environment';

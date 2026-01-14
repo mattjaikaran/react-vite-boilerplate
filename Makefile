@@ -612,3 +612,62 @@ help-all: ## Show all available commands by category
 	@echo ""
 	@echo "Other Commands:"
 	@grep -E '^(clean|fresh-install|check-all|setup|env-setup|update-deps|outdated|deploy-prep|generate-routes|analyze):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+# ==================================
+# Optional Features
+# ==================================
+
+# SSR (Server-Side Rendering)
+setup-ssr: ## Enable Server-Side Rendering
+	@echo "Setting up SSR..."
+	@./scripts/setup-ssr.sh
+
+disable-ssr: ## Disable Server-Side Rendering
+	@echo "Disabling SSR..."
+	@./scripts/disable-ssr.sh
+
+# RSC (React Server Components)
+setup-rsc: ## Enable React Server Components utilities
+	@echo "Setting up RSC..."
+	@./scripts/setup-rsc.sh
+
+disable-rsc: ## Disable React Server Components utilities
+	@echo "Disabling RSC..."
+	@./scripts/disable-rsc.sh
+
+# Combined feature commands
+add-feature: ## Add optional feature (usage: make add-feature FEATURE=ssr)
+	@if [ -z "$(FEATURE)" ]; then \
+		echo "Usage: make add-feature FEATURE=<ssr|rsc|all>"; \
+		exit 1; \
+	fi
+	@./scripts/add-feature.sh $(FEATURE)
+
+remove-feature: ## Remove optional feature (usage: make remove-feature FEATURE=ssr)
+	@if [ -z "$(FEATURE)" ]; then \
+		echo "Usage: make remove-feature FEATURE=<ssr|rsc|all>"; \
+		exit 1; \
+	fi
+	@./scripts/remove-feature.sh $(FEATURE)
+
+# List available optional features
+list-features: ## List available optional features
+	@echo "Available Optional Features:"
+	@echo ""
+	@echo "  \033[36mssr\033[0m  - Server-Side Rendering with Express"
+	@echo "        Adds: server.ts, entry files, vite config for SSR"
+	@echo "        Use for: SEO, faster initial load, social previews"
+	@echo ""
+	@echo "  \033[36mrsc\033[0m  - React Server Components utilities"
+	@echo "        Adds: isServer, isClient, cache, serverOnly helpers"
+	@echo "        Use for: Preparing for Next.js migration"
+	@echo ""
+	@echo "Commands:"
+	@echo "  make add-feature FEATURE=ssr     - Enable SSR"
+	@echo "  make add-feature FEATURE=rsc     - Enable RSC"
+	@echo "  make add-feature FEATURE=all     - Enable all features"
+	@echo "  make remove-feature FEATURE=ssr  - Disable SSR"
+
+help-features: ## Show optional features commands
+	@echo "Optional Features Commands:"
+	@grep -E '^(setup-ssr|disable-ssr|setup-rsc|disable-rsc|add-feature|remove-feature|list-features):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'

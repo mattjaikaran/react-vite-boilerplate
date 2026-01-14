@@ -21,12 +21,10 @@
     "setup:shadcn": "bunx shadcn@latest init -y",
     "docker:build": "docker build -t react-vite-boilerplate .",
     "docker:run": "docker run -p 3000:3000 react-vite-boilerplate",
-    "dev:ssr": "tsx server.ts",
-    "build:ssr": "bun run build:client && bun run build:server",
-    "build:client": "vite build --outDir dist/client",
-    "build:server": "vite build --outDir dist/server --ssr src/entry-server.tsx --config vite.config.ssr.ts",
-    "serve:ssr": "NODE_ENV=production node dist/server/entry-server.js",
-    "preview:ssr": "NODE_ENV=production tsx server.ts"
+    "feature:add": "./scripts/add-feature.sh",
+    "feature:remove": "./scripts/remove-feature.sh",
+    "feature:ssr": "./scripts/setup-ssr.sh",
+    "feature:rsc": "./scripts/setup-rsc.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

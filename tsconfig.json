@@ -32,9 +32,11 @@
       "@/api/*": ["./src/api/*"],
       "@/types/*": ["./src/types/*"],
       "@/config/*": ["./src/config/*"],
-      "@/mock-api/*": ["./src/mock-api/*"]
+      "@/mock-api/*": ["./src/mock-api/*"],
+      "@/optional/*": ["./src/optional/*"]
     }
   },
   "include": ["src", "vite.config.ts"],
+  "exclude": ["src/optional/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

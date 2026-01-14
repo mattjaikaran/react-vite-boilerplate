@@ -21,7 +21,7 @@ export async function retry<T>(
     retries?: number;
     delay?: number;
     backoff?: 'linear' | 'exponential';
-    shouldRetry?: (error: any) => boolean;
+    shouldRetry?: (error: unknown) => boolean;
   } = {}
 ): Promise<T> {
   const {
@@ -31,7 +31,7 @@ export async function retry<T>(
     shouldRetry = () => true,
   } = options;
 
-  let lastError: any;
+  let lastError: unknown;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -94,24 +94,24 @@ export async function series<T>(promises: (() => Promise<T>)[]): Promise<T[]> {
 }
 
 export async function waterfall<T>(
-  tasks: Array<(prev?: any) => Promise<T>>
+  tasks: Array<(prev: T | undefined) => Promise<T>>
 ): Promise<T> {
-  let result: any;
+  let result: T | undefined;
 
   for (const task of tasks) {
     result = await task(result);
   }
 
-  return result;
+  return result as T;
 }
 
-export function debounceAsync<T extends (...args: any[]) => Promise<any>>(
-  fn: T,
-  wait: number
-): T {
-  let timeout: NodeJS.Timeout;
-  let resolvePromise: (value: any) => void;
-  let rejectPromise: (reason: any) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AsyncFunction = (...args: any[]) => Promise<unknown>;
+
+export function debounceAsync<T extends AsyncFunction>(fn: T, wait: number): T {
+  let timeout: ReturnType<typeof setTimeout>;
+  let resolvePromise: ((value: unknown) => void) | null = null;
+  let rejectPromise: ((reason: unknown) => void) | null = null;
 
   return ((...args: Parameters<T>) => {
     return new Promise((resolve, reject) => {
@@ -122,21 +122,18 @@ export function debounceAsync<T extends (...args: any[]) => Promise<any>>(
       timeout = setTimeout(async () => {
         try {
           const result = await fn(...args);
-          resolvePromise(result);
+          resolvePromise?.(result);
         } catch (error) {
-          rejectPromise(error);
+          rejectPromise?.(error);
         }
       }, wait);
     });
   }) as T;
 }
 
-export function throttleAsync<T extends (...args: any[]) => Promise<any>>(
-  fn: T,
-  wait: number
-): T {
+export function throttleAsync<T extends AsyncFunction>(fn: T, wait: number): T {
   let lastCall = 0;
-  let timeout: NodeJS.Timeout;
+  let timeout: ReturnType<typeof setTimeout>;
 
   return ((...args: Parameters<T>) => {
     return new Promise((resolve, reject) => {

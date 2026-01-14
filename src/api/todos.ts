@@ -80,7 +80,13 @@ export const todosApi = {
     overdue: number;
     byPriority: Record<string, number>;
   }> => {
-    const response = await apiClient.get('/todos/stats');
+    const response = await apiClient.get<{
+      total: number;
+      completed: number;
+      pending: number;
+      overdue: number;
+      byPriority: Record<string, number>;
+    }>('/todos/stats');
     return handleApiResponse(response);
   },
 };

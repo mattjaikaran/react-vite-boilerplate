@@ -95,6 +95,93 @@ src/
 - **Type Safety** - Comprehensive TypeScript coverage
 - **Separation of Concerns** - Clear boundaries between layers
 - **Accessibility** - WCAG compliant components
+- **Performance First** - Zustand over Context, minimal re-renders
+
+## Django Integration
+
+This boilerplate is designed to work seamlessly with [Django Ninja](https://django-ninja.dev/) backends. See [django-ninja-boilerplate](https://github.com/mattjaikaran/django-ninja-boilerplate) for more details.
+
+### Features
+
+- **Django Ninja API Types** - Type definitions matching Django Ninja's response format
+- **CSRF Token Handling** - Automatic CSRF token management for Django
+- **Server-side Pagination** - DataTable supports Django's pagination format
+- **Authentication** - Works with Django's JWT authentication
+
+### Setup
+
+```bash
+# Set your Django API URL
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+
+# Enable Django SPA mode (optional)
+VITE_MODE=django-spa
+```
+
+### Server-side Pagination Example
+
+```tsx
+import { DataTable } from '@/components/shared/DataTable';
+import { useTodos } from '@/hooks';
+
+function TodoList() {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const { data, isLoading } = useTodos({ page, page_size: pageSize });
+
+  return (
+    <DataTable
+      columns={columns}
+      data={data?.data ?? []}
+      isLoading={isLoading}
+      serverPagination={{
+        page,
+        pageSize,
+        total: data?.pagination.total ?? 0,
+        totalPages: data?.pagination.totalPages ?? 0,
+      }}
+      onPaginationChange={(newPage, newSize) => {
+        setPage(newPage);
+        setPageSize(newSize);
+      }}
+    />
+  );
+}
+```
+
+## Optional Enhancements
+
+The boilerplate includes optional advanced features in `src/optional/`:
+
+### Server-Side Rendering (SSR)
+
+Enable SSR for better SEO and initial load performance.
+
+```bash
+# See setup instructions
+cat src/optional/ssr/README.md
+```
+
+**When to use SSR:**
+
+- Public-facing content pages
+- SEO-critical pages
+- Social media previews
+
+### React Server Components (RSC)
+
+Utilities for RSC patterns (requires Next.js for full support).
+
+```bash
+# See documentation
+cat src/optional/rsc/README.md
+```
+
+**When to use RSC:**
+
+- Migrating to Next.js App Router
+- Building isomorphic utilities
 
 ## Getting Started
 

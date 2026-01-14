@@ -14,6 +14,7 @@ export default [
       '.vscode',
       '*.config.js',
       'server.ts',
+      'src/optional/**/*',
     ],
   },
   {

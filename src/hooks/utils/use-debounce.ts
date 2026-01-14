@@ -27,7 +27,8 @@ export const useDebounce = <T>(value: T, delay: number = 500): T => {
 /**
  * Hook to debounce a callback function
  */
-export const useDebouncedCallback = <T extends (...args: any[]) => any>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const useDebouncedCallback = <T extends (...args: any[]) => unknown>(
   callback: T,
   delay: number = 500
 ): ((...args: Parameters<T>) => void) => {

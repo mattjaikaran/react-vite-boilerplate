@@ -44,15 +44,19 @@ export interface AppConfig {
   };
 }
 
+// Type for window runtime config
+declare global {
+  interface Window {
+    __APP_CONFIG__?: Record<string, string>;
+    __DJANGO_SPA__?: boolean;
+  }
+}
+
 // Environment variables with defaults
 const getEnvVar = (key: string, defaultValue: string = ''): string => {
   if (typeof window !== 'undefined') {
     // Browser environment - check for runtime config
-    return (
-      (window as any).__APP_CONFIG__?.[key] ||
-      import.meta.env[key] ||
-      defaultValue
-    );
+    return window.__APP_CONFIG__?.[key] || import.meta.env[key] || defaultValue;
   }
   return import.meta.env[key] || defaultValue;
 };
@@ -65,7 +69,7 @@ const getEnvBool = (key: string, defaultValue: boolean = false): boolean => {
 // Determine if we're running in Django SPA mode
 const isDjangoSPAMode =
   getEnvVar('VITE_MODE') === 'django-spa' ||
-  (typeof window !== 'undefined' && (window as any).__DJANGO_SPA__);
+  (typeof window !== 'undefined' && window.__DJANGO_SPA__);
 
 // Application configuration
 export const config: AppConfig = {

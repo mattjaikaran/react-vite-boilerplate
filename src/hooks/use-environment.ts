@@ -1,23 +1,25 @@
 /**
  * Environment detection hooks
+ * Uses Zustand store for config state
  */
 
-import { useConfig } from '@/components/providers/ConfigProvider';
-import { useEffect, useState } from 'react';
+import {
+  useEnvConfig,
+  useIsDjangoSPA as useIsDjangoSPAStore,
+  useIsStandalone as useIsStandaloneStore,
+} from '@/lib/store';
+import { useSyncExternalStore } from 'react';
 
 export function useEnvironment() {
-  const { config } = useConfig();
-  return config.env;
+  return useEnvConfig();
 }
 
 export function useIsDjangoSPA() {
-  const { isDjangoSPA } = useConfig();
-  return isDjangoSPA;
+  return useIsDjangoSPAStore();
 }
 
 export function useIsStandalone() {
-  const { isStandalone } = useConfig();
-  return isStandalone;
+  return useIsStandaloneStore();
 }
 
 export function useIsDevelopment() {
@@ -30,67 +32,73 @@ export function useIsProduction() {
   return env.isProduction;
 }
 
+// Using useSyncExternalStore for optimal performance (no useEffect)
+const subscribeToOnline = (callback: () => void) => {
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
+  return () => {
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
+};
+
+const getOnlineSnapshot = () => navigator.onLine;
+const getOnlineServerSnapshot = () => true;
+
 export function useNetworkStatus() {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  return isOnline;
+  return useSyncExternalStore(
+    subscribeToOnline,
+    getOnlineSnapshot,
+    getOnlineServerSnapshot
+  );
 }
+
+// Viewport size with useSyncExternalStore
+const subscribeToResize = (callback: () => void) => {
+  window.addEventListener('resize', callback);
+  return () => window.removeEventListener('resize', callback);
+};
+
+const getViewportSnapshot = () => ({
+  width: window.innerWidth,
+  height: window.innerHeight,
+});
+
+const getViewportServerSnapshot = () => ({ width: 1024, height: 768 });
+
+// Cache for viewport to avoid object recreation
+let cachedViewport = { width: 0, height: 0 };
+const getMemoizedViewportSnapshot = () => {
+  const current = getViewportSnapshot();
+  if (
+    current.width !== cachedViewport.width ||
+    current.height !== cachedViewport.height
+  ) {
+    cachedViewport = current;
+  }
+  return cachedViewport;
+};
 
 export function useViewportSize() {
-  const [viewportSize, setViewportSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      setViewportSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return viewportSize;
+  return useSyncExternalStore(
+    subscribeToResize,
+    getMemoizedViewportSnapshot,
+    getViewportServerSnapshot
+  );
 }
 
+// Media query with useSyncExternalStore
 export function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia(query).matches;
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
+  const subscribe = (callback: () => void) => {
     const mediaQuery = window.matchMedia(query);
-    const handleChange = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
-    };
+    mediaQuery.addEventListener('change', callback);
+    return () => mediaQuery.removeEventListener('change', callback);
+  };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [query]);
+  const getSnapshot = () => window.matchMedia(query).matches;
+  const getServerSnapshot = () => false;
 
-  return matches;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 export function useIsMobile() {

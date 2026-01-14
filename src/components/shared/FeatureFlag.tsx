@@ -1,9 +1,10 @@
 /**
  * Feature flag component for conditional rendering
+ * Uses Zustand store for feature state
  */
 
-import { useFeature } from '@/components/providers/ConfigProvider';
 import type { AppConfig } from '@/config';
+import { useFeatureEnabled } from '@/lib/store';
 import type { ReactNode } from 'react';
 
 interface FeatureFlagProps {
@@ -17,7 +18,7 @@ export function FeatureFlag({
   children,
   fallback = null,
 }: FeatureFlagProps) {
-  const isEnabled = useFeature(feature);
+  const isEnabled = useFeatureEnabled(feature);
 
   return isEnabled ? <>{children}</> : <>{fallback}</>;
 }

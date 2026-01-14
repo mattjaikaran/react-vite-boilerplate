@@ -70,8 +70,9 @@ export function clientOnly<T>(fn: () => T): T {
  * Cache function for server components
  * Memoizes async function calls during a request
  */
-export function cache<T extends (...args: any[]) => Promise<any>>(fn: T): T {
-  const cacheMap = new Map<string, any>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function cache<T extends (...args: any[]) => Promise<unknown>>(fn: T): T {
+  const cacheMap = new Map<string, unknown>();
 
   return (async (...args: Parameters<T>) => {
     const key = JSON.stringify(args);
