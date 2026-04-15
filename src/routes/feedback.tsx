@@ -20,8 +20,7 @@ export const Route = createFileRoute('/feedback')({
 function FeedbackPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Feedback form submitted');
+    // TODO: wire to API
   };
 
   const feedbackTypes = [

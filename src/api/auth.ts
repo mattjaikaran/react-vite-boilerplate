@@ -2,17 +2,12 @@ import { apiClient, handleApiResponse } from '@/lib/api';
 import type {
   AuthResponse,
   DjangoAuthResponse,
-  DjangoUserResponse,
   LoginCredentials,
   MagicLinkRequest,
   RegisterCredentials,
   User,
 } from '@/types';
-import {
-  normalizeAuthResponse,
-  normalizeUser,
-  toDjangoRegisterCredentials,
-} from '@/types/auth';
+import { normalizeAuthResponse } from '@/types/auth';
 
 /**
  * Determine auth endpoint paths based on backend configuration
@@ -58,7 +53,13 @@ export const authApi = {
 
     const response = await apiClient.post<AuthResponse | DjangoAuthResponse>(
       paths.register,
-      toDjangoRegisterCredentials(credentials)
+      {
+        email: credentials.email,
+        password: credentials.password,
+        firstName: credentials.firstName,
+        lastName: credentials.lastName,
+        passwordConfirm: credentials.confirmPassword,
+      }
     );
     const data = handleApiResponse(response);
     return normalizeAuthResponse(data);
@@ -131,15 +132,8 @@ export const authApi = {
    */
   getProfile: async (): Promise<User> => {
     const paths = getAuthPaths();
-    const response = await apiClient.get<User | DjangoUserResponse>(
-      paths.profile
-    );
-    const data = handleApiResponse(response);
-
-    if ('first_name' in data) {
-      return normalizeUser(data as DjangoUserResponse);
-    }
-    return data as User;
+    const response = await apiClient.get<User>(paths.profile);
+    return handleApiResponse(response);
   },
 
   /**
@@ -148,20 +142,15 @@ export const authApi = {
   updateProfile: async (updates: Partial<User>): Promise<User> => {
     const paths = getAuthPaths();
 
-    const response = await apiClient.patch<User | DjangoUserResponse>(
+    const response = await apiClient.patch<User>(
       paths.profile,
       {
-        first_name: updates.firstName,
-        last_name: updates.lastName,
+        firstName: updates.firstName,
+        lastName: updates.lastName,
         email: updates.email,
       }
     );
-    const data = handleApiResponse(response);
-
-    if ('first_name' in data) {
-      return normalizeUser(data as DjangoUserResponse);
-    }
-    return data as User;
+    return handleApiResponse(response);
   },
 
   /**
@@ -176,8 +165,8 @@ export const authApi = {
     const response = await apiClient.post<{ message: string }>(
       paths.changePassword,
       {
-        old_password: data.currentPassword,
-        new_password: data.newPassword,
+        oldPassword: data.currentPassword,
+        newPassword: data.newPassword,
       }
     );
     return handleApiResponse(response);
@@ -206,7 +195,7 @@ export const authApi = {
 
     const response = await apiClient.post<{ message: string }>(
       paths.resetPassword,
-      { token: data.token, new_password: data.newPassword }
+      { token: data.token, newPassword: data.newPassword }
     );
     return handleApiResponse(response);
   },

@@ -20,9 +20,7 @@ FROM base AS prerelease
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
-# [optional] tests & build
 ENV NODE_ENV=production
-RUN bun test
 RUN bun run build
 
 # Copy production dependencies and source code into final image

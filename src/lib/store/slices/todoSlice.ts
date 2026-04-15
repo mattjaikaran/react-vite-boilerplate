@@ -1,4 +1,4 @@
-import { generateId } from '@/lib/utils';
+import { api } from '@/lib/api';
 import type {
   CreateTodoRequest,
   Todo,
@@ -36,46 +36,6 @@ const initialState: TodoState = {
   filters: initialFilters,
 };
 
-// Mock data for development
-const mockTodos: Todo[] = [
-  {
-    id: '1',
-    title: 'Complete project setup',
-    description:
-      'Set up the React Vite boilerplate with all necessary configurations',
-    completed: false,
-    priority: 'high',
-    dueDate: '2024-12-31',
-    tags: ['development', 'setup'],
-    userId: '1',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: '2',
-    title: 'Write documentation',
-    description: 'Create comprehensive documentation for the boilerplate',
-    completed: false,
-    priority: 'medium',
-    dueDate: '2024-12-25',
-    tags: ['documentation', 'writing'],
-    userId: '1',
-    createdAt: '2024-01-02T00:00:00Z',
-    updatedAt: '2024-01-02T00:00:00Z',
-  },
-  {
-    id: '3',
-    title: 'Add unit tests',
-    description: 'Implement unit tests for all components and utilities',
-    completed: true,
-    priority: 'high',
-    tags: ['testing', 'quality'],
-    userId: '1',
-    createdAt: '2024-01-03T00:00:00Z',
-    updatedAt: '2024-01-03T00:00:00Z',
-  },
-];
-
 export const createTodoSlice: StateCreator<TodoSlice> = (set, get) => ({
   ...initialState,
 
@@ -83,12 +43,9 @@ export const createTodoSlice: StateCreator<TodoSlice> = (set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // This will be replaced with actual API call
+      const response = await api.get<Todo[]>('/todos');
       set({
-        todos: mockTodos,
+        todos: response.data,
         isLoading: false,
         error: null,
       });
@@ -104,22 +61,10 @@ export const createTodoSlice: StateCreator<TodoSlice> = (set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      const newTodo: Todo = {
-        id: generateId(),
-        ...todoData,
-        completed: false,
-        tags: todoData.tags || [],
-        userId: '1', // This would come from auth state
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
+      const response = await api.post<Todo>('/todos', todoData);
       const { todos } = get();
       set({
-        todos: [newTodo, ...todos],
+        todos: [response.data, ...todos],
         isLoading: false,
         error: null,
       });
@@ -135,22 +80,10 @@ export const createTodoSlice: StateCreator<TodoSlice> = (set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-
+      const response = await api.patch<Todo>(`/todos/${id}`, updates);
       const { todos } = get();
-      const updatedTodos = todos.map(todo =>
-        todo.id === id
-          ? {
-              ...todo,
-              ...updates,
-              updatedAt: new Date().toISOString(),
-            }
-          : todo
-      );
-
       set({
-        todos: updatedTodos,
+        todos: todos.map(todo => (todo.id === id ? response.data : todo)),
         isLoading: false,
         error: null,
       });
@@ -166,14 +99,10 @@ export const createTodoSlice: StateCreator<TodoSlice> = (set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-
+      await api.delete(`/todos/${id}`);
       const { todos } = get();
-      const filteredTodos = todos.filter(todo => todo.id !== id);
-
       set({
-        todos: filteredTodos,
+        todos: todos.filter(todo => todo.id !== id),
         isLoading: false,
         error: null,
       });
@@ -186,11 +115,22 @@ export const createTodoSlice: StateCreator<TodoSlice> = (set, get) => ({
   },
 
   toggleTodo: async (id: string) => {
-    const { todos, updateTodo } = get();
+    const { todos } = get();
     const todo = todos.find(t => t.id === id);
 
     if (todo) {
-      await updateTodo(id, { completed: !todo.completed });
+      try {
+        const response = await api.patch<Todo>(`/todos/${id}`, {
+          completed: !todo.completed,
+        });
+        set({
+          todos: todos.map(t => (t.id === id ? response.data : t)),
+        });
+      } catch (error) {
+        set({
+          error: error instanceof Error ? error.message : 'Failed to toggle todo',
+        });
+      }
     }
   },
 

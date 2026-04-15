@@ -13,8 +13,7 @@ export const Route = createFileRoute('/contact')({
 function ContactPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Contact form submitted');
+    // TODO: wire to API
   };
 
   return (
