@@ -3,26 +3,5 @@
  * Domain-specific hooks for mutations
  */
 
-// Auth mutations
-export {
-  useChangePassword,
-  useLogin,
-  useLogout,
-  useMagicLink,
-  useRegister,
-  useRequestPasswordReset,
-  useResetPassword,
-  useUpdateProfile,
-  useVerifyMagicLink,
-} from './use-auth-mutations';
-
-// Todo mutations
-export {
-  useArchiveCompletedTodos,
-  useBulkDeleteTodos,
-  useBulkUpdateTodos,
-  useCreateTodo,
-  useDeleteTodo,
-  useToggleTodo,
-  useUpdateTodo,
-} from './use-todo-mutations';
+// Auth and Todo mutations are provided by use-auth.ts and use-todo.ts
+// Re-exported from the main hooks/index.ts

@@ -3,18 +3,5 @@
  * Domain-specific hooks for fetching data
  */
 
-// Auth queries
-export { useAuthStatus, useProfile, useSessionCheck } from './use-auth-queries';
-
-// Todo queries
-export {
-  useInfiniteTodos,
-  useOverdueTodos,
-  useSearchTodos,
-  useTodo,
-  useTodos,
-  useTodosByPriority,
-  useTodosByStatus,
-  useTodosDueToday,
-  useTodoStats,
-} from './use-todo-queries';
+// Auth and Todo queries are provided by use-auth.ts and use-todo.ts
+// Re-exported from the main hooks/index.ts

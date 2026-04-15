@@ -238,15 +238,41 @@ export const apiClient = {
 };
 
 /**
- * Utility function to handle API responses
+ * Extract data from API responses.
+ * Handles both wrapped format ({ success, data, message }) and Django direct responses.
  */
 export const handleApiResponse = <T>(
-  response: AxiosResponse<ApiResponse<T>>
+  response: AxiosResponse<ApiResponse<T> | T>
 ): T => {
-  if (response.data.success) {
-    return response.data.data;
+  const data = response.data;
+
+  // Wrapped response format
+  if (
+    typeof data === 'object' &&
+    data !== null &&
+    'success' in data &&
+    'data' in data
+  ) {
+    const wrapped = data as ApiResponse<T>;
+    if (wrapped.success) {
+      return wrapped.data;
+    }
+    throw new Error(wrapped.message || 'API request failed');
   }
-  throw new Error(response.data.message || 'API request failed');
+
+  // Django error format
+  if (typeof data === 'object' && data !== null && 'detail' in data) {
+    const detail = (data as { detail: string | { msg: string }[] }).detail;
+    if (typeof detail === 'string') {
+      throw new Error(detail);
+    }
+    if (Array.isArray(detail)) {
+      throw new Error(detail.map(d => d.msg).join(', '));
+    }
+  }
+
+  // Direct response — return as-is
+  return data as T;
 };
 
 /**

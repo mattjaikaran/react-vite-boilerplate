@@ -8,7 +8,6 @@ export interface AppConfig {
     baseUrl: string;
     timeout: number;
     retries: number;
-    version: string;
   };
 
   // Authentication
@@ -80,7 +79,6 @@ export const config: AppConfig = {
     ),
     timeout: parseInt(getEnvVar('VITE_API_TIMEOUT', '10000')),
     retries: parseInt(getEnvVar('VITE_API_RETRIES', '3')),
-    version: getEnvVar('VITE_API_VERSION', 'v1'),
   },
 
   auth: {

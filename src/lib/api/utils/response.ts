@@ -1,7 +1,8 @@
 /**
  * API Response Utilities
- * Helpers for handling and transforming API responses
- * Compatible with both wrapped responses and Django Ninja direct responses
+ * Helpers for handling paginated responses and creating standardized formats.
+ *
+ * Note: The primary handleApiResponse lives in @/lib/api.ts
  */
 
 import type {
@@ -36,39 +37,6 @@ const isDjangoPaginated = <T>(
     'count' in data &&
     'page' in data
   );
-};
-
-/**
- * Extract data from a successful API response
- * Handles both wrapped format and Django Ninja direct format
- */
-export const handleApiResponse = <T>(
-  response: AxiosResponse<ApiResponse<T> | T>
-): T => {
-  const data = response.data;
-
-  // Handle wrapped response format
-  if (isWrappedResponse<T>(data)) {
-    if (data.success) {
-      return data.data;
-    }
-    throw new Error(data.message || 'API request failed');
-  }
-
-  // Handle Django Ninja direct response format
-  // If the response has a 'detail' field, it's likely an error
-  if (typeof data === 'object' && data !== null && 'detail' in data) {
-    const detail = (data as { detail: string | { msg: string }[] }).detail;
-    if (typeof detail === 'string') {
-      throw new Error(detail);
-    }
-    if (Array.isArray(detail)) {
-      throw new Error(detail.map(d => d.msg).join(', '));
-    }
-  }
-
-  // Direct response - return as is
-  return data as T;
 };
 
 /**

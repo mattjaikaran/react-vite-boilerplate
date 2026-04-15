@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useTodoStats, useTodos } from '@/hooks';
+import type { Todo } from '@/types';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   Activity,
@@ -202,9 +203,9 @@ function DashboardPage() {
                     />
                   ))}
                 </div>
-              ) : todosData?.data && todosData.data.length > 0 ? (
+              ) : todosData && todosData.length > 0 ? (
                 <div className="space-y-3">
-                  {todosData.data.map(todo => (
+                  {todosData.map((todo: Todo) => (
                     <div
                       key={todo.id}
                       className="flex items-center gap-3 rounded-lg bg-muted/50 p-3 transition-colors hover:bg-muted"

@@ -13,7 +13,8 @@
  * - They become true server actions
  */
 
-import { authService, todoService } from '@/lib/api/services';
+import { authApi } from '@/api/auth';
+import { todosApi } from '@/api/todos';
 import type {
   CreateTodoRequest,
   LoginCredentials,
@@ -44,93 +45,65 @@ export function createFormAction<TInput, TOutput>(
 // Todo Server Actions
 // ============================================
 
-/**
- * Create todo server action
- */
 export const createTodoAction: ServerAction<
   CreateTodoRequest,
   Todo
 > = async data => {
-  // 'use server' - Add this directive when migrating to Next.js
-  return todoService.create(data);
+  return todosApi.createTodo(data);
 };
 
-/**
- * Update todo server action
- */
 export const updateTodoAction: ServerAction<
   { id: string; updates: UpdateTodoRequest },
   Todo
 > = async ({ id, updates }) => {
-  // 'use server'
-  return todoService.update(id, updates);
+  return todosApi.updateTodo(id, updates);
 };
 
-/**
- * Delete todo server action
- */
 export const deleteTodoAction: ServerAction<
   string,
   { message: string }
 > = async id => {
-  // 'use server'
-  return todoService.delete(id);
+  return todosApi.deleteTodo(id);
 };
 
-/**
- * Toggle todo server action
- */
 export const toggleTodoAction: ServerAction<string, Todo> = async id => {
-  // 'use server'
-  return todoService.toggle(id);
+  return todosApi.toggleTodo(id);
 };
 
 // ============================================
 // Auth Server Actions
 // ============================================
 
-/**
- * Login server action
- */
 export const loginAction: ServerAction<
   LoginCredentials,
   { success: boolean }
 > = async credentials => {
-  // 'use server'
   try {
-    await authService.login(credentials);
+    await authApi.login(credentials);
     return { success: true };
   } catch {
     return { success: false };
   }
 };
 
-/**
- * Register server action
- */
 export const registerAction: ServerAction<
   RegisterCredentials,
   { success: boolean }
 > = async credentials => {
-  // 'use server'
   try {
-    await authService.register(credentials);
+    await authApi.register(credentials);
     return { success: true };
   } catch {
     return { success: false };
   }
 };
 
-/**
- * Logout server action
- */
 export const logoutAction: ServerAction<
   void,
   { success: boolean }
 > = async () => {
-  // 'use server'
   try {
-    await authService.logout();
+    await authApi.logout();
     return { success: true };
   } catch {
     return { success: false };

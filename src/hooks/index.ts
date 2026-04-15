@@ -27,48 +27,30 @@ export {
 } from './api';
 
 // ============================================
-// Query Hooks - Domain-specific data fetching
+// Domain Hooks - Auth
 // ============================================
 export {
-  useAuthStatus,
-  useInfiniteTodos,
-  useOverdueTodos,
-  // Auth queries
-  useProfile,
-  useSearchTodos,
-  useSessionCheck,
-  useTodo,
-  // Todo queries
-  useTodos,
-  useTodosByPriority,
-  useTodosByStatus,
-  useTodosDueToday,
-  useTodoStats,
-} from './queries';
-
-// ============================================
-// Mutation Hooks - Domain-specific mutations
-// ============================================
-export {
-  useArchiveCompletedTodos,
-  useBulkDeleteTodos,
-  useBulkUpdateTodos,
   useChangePassword,
-  // Todo mutations
-  useCreateTodo,
-  useDeleteTodo,
-  // Auth mutations
   useLogin,
   useLogout,
   useMagicLink,
+  useProfile,
   useRegister,
-  useRequestPasswordReset,
-  useResetPassword,
-  useToggleTodo,
   useUpdateProfile,
+} from './use-auth';
+
+// ============================================
+// Domain Hooks - Todos
+// ============================================
+export {
+  useCreateTodo,
+  useDeleteTodo,
+  useTodo,
+  useTodos,
+  useTodoStats,
+  useToggleTodo,
   useUpdateTodo,
-  useVerifyMagicLink,
-} from './mutations';
+} from './use-todo';
 
 // ============================================
 // Utility Hooks - Common utilities

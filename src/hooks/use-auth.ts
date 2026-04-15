@@ -134,3 +134,62 @@ export const useProfile = (options?: UseQueryOptions<User, Error>) => {
     ...options,
   });
 };
+
+export const useUpdateProfile = (
+  options?: UseMutationOptions<User, Error, Partial<User>>
+) => {
+  const queryClient = useQueryClient();
+  const { addNotification } = useUI();
+  const { setUser } = useAuth();
+
+  return useMutation({
+    mutationFn: (updates: Partial<User>) => authApi.updateProfile(updates),
+    onSuccess: data => {
+      setUser(data);
+      queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] });
+      addNotification({
+        type: 'success',
+        title: 'Profile updated',
+        message: 'Your profile has been updated successfully.',
+      });
+    },
+    onError: error => {
+      addNotification({
+        type: 'error',
+        title: 'Failed to update profile',
+        message: error.message,
+      });
+    },
+    ...options,
+  });
+};
+
+export const useChangePassword = (
+  options?: UseMutationOptions<
+    { message: string },
+    Error,
+    { currentPassword: string; newPassword: string }
+  >
+) => {
+  const { addNotification } = useUI();
+
+  return useMutation({
+    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
+      authApi.changePassword(data),
+    onSuccess: () => {
+      addNotification({
+        type: 'success',
+        title: 'Password changed',
+        message: 'Your password has been changed successfully.',
+      });
+    },
+    onError: error => {
+      addNotification({
+        type: 'error',
+        title: 'Failed to change password',
+        message: error.message,
+      });
+    },
+    ...options,
+  });
+};

@@ -5,7 +5,6 @@
 export {
   createErrorResponse,
   createSuccessResponse,
-  handleApiResponse,
   handlePaginatedResponse,
 } from './response';
 
