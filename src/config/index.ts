@@ -76,7 +76,7 @@ export const config: AppConfig = {
   api: {
     baseUrl: getEnvVar(
       'VITE_API_BASE_URL',
-      isDjangoSPAMode ? '/api/v1' : 'http://localhost:8000/api/v1'
+      isDjangoSPAMode ? '/api' : 'http://localhost:8000/api'
     ),
     timeout: parseInt(getEnvVar('VITE_API_TIMEOUT', '10000')),
     retries: parseInt(getEnvVar('VITE_API_RETRIES', '3')),
@@ -109,7 +109,7 @@ export const config: AppConfig = {
       csrfTokenName: getEnvVar('VITE_DJANGO_CSRF_TOKEN_NAME', 'csrftoken'),
       staticUrl: getEnvVar('VITE_DJANGO_STATIC_URL', '/static/'),
       mediaUrl: getEnvVar('VITE_DJANGO_MEDIA_URL', '/media/'),
-      apiPrefix: getEnvVar('VITE_DJANGO_API_PREFIX', '/api/v1'),
+      apiPrefix: getEnvVar('VITE_DJANGO_API_PREFIX', '/api'),
     },
   }),
 };
@@ -135,7 +135,3 @@ export const isFeatureEnabled = (
   return config.features[feature];
 };
 
-// Debug logging in development
-if (config.env.isDevelopment) {
-  console.log('🚀 App Configuration:', config);
-}

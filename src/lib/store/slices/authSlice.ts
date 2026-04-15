@@ -1,3 +1,5 @@
+import { authApi } from '@/api/auth';
+import { config } from '@/config';
 import type {
   AuthState,
   AuthTokens,
@@ -31,6 +33,8 @@ const initialState: AuthState = {
   error: null,
 };
 
+const { tokenKey, refreshTokenKey } = config.auth;
+
 export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
   ...initialState,
 
@@ -38,31 +42,15 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // This will be replaced with actual API call
-      const mockResponse = {
-        user: {
-          id: '1',
-          email: credentials.email,
-          firstName: 'John',
-          lastName: 'Doe',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        tokens: {
-          accessToken: 'mock-access-token',
-          refreshToken: 'mock-refresh-token',
-        },
-      };
+      const { user, tokens } = await authApi.login(credentials);
 
-      // Store tokens in localStorage
-      localStorage.setItem('auth_token', mockResponse.tokens.accessToken);
-      localStorage.setItem('refresh_token', mockResponse.tokens.refreshToken);
-      localStorage.setItem('user', JSON.stringify(mockResponse.user));
+      localStorage.setItem(tokenKey, tokens.accessToken);
+      localStorage.setItem(refreshTokenKey, tokens.refreshToken);
+      localStorage.setItem('user', JSON.stringify(user));
 
       set({
-        user: mockResponse.user,
-        tokens: mockResponse.tokens,
+        user,
+        tokens,
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -79,31 +67,15 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // This will be replaced with actual API call
-      const mockResponse = {
-        user: {
-          id: '1',
-          email: credentials.email,
-          firstName: credentials.firstName,
-          lastName: credentials.lastName,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        tokens: {
-          accessToken: 'mock-access-token',
-          refreshToken: 'mock-refresh-token',
-        },
-      };
+      const { user, tokens } = await authApi.register(credentials);
 
-      // Store tokens in localStorage
-      localStorage.setItem('auth_token', mockResponse.tokens.accessToken);
-      localStorage.setItem('refresh_token', mockResponse.tokens.refreshToken);
-      localStorage.setItem('user', JSON.stringify(mockResponse.user));
+      localStorage.setItem(tokenKey, tokens.accessToken);
+      localStorage.setItem(refreshTokenKey, tokens.refreshToken);
+      localStorage.setItem('user', JSON.stringify(user));
 
       set({
-        user: mockResponse.user,
-        tokens: mockResponse.tokens,
+        user,
+        tokens,
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -116,13 +88,11 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
     }
   },
 
-  magicLink: async (_request: MagicLinkRequest) => {
+  magicLink: async (request: MagicLinkRequest) => {
     set({ isLoading: true, error: null });
 
     try {
-      // This will be replaced with actual API call
-      // For now, just simulate sending magic link
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await authApi.magicLink(request);
 
       set({
         isLoading: false,
@@ -137,9 +107,8 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
   },
 
   logout: () => {
-    // Clear localStorage
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem(tokenKey);
+    localStorage.removeItem(refreshTokenKey);
     localStorage.removeItem('user');
 
     set({
@@ -158,21 +127,15 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
     set({ isLoading: true });
 
     try {
-      // This will be replaced with actual API call
-      const mockTokens = {
-        accessToken: 'new-mock-access-token',
-        refreshToken: 'new-mock-refresh-token',
-      };
+      const { accessToken } = await authApi.refreshToken(tokens.refreshToken);
 
-      localStorage.setItem('auth_token', mockTokens.accessToken);
-      localStorage.setItem('refresh_token', mockTokens.refreshToken);
+      localStorage.setItem(tokenKey, accessToken);
 
       set({
-        tokens: mockTokens,
+        tokens: { ...tokens, accessToken },
         isLoading: false,
       });
     } catch {
-      // If refresh fails, logout user
       get().logout();
     }
   },
@@ -184,8 +147,8 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
 
   setTokens: (tokens: AuthTokens) => {
     set({ tokens });
-    localStorage.setItem('auth_token', tokens.accessToken);
-    localStorage.setItem('refresh_token', tokens.refreshToken);
+    localStorage.setItem(tokenKey, tokens.accessToken);
+    localStorage.setItem(refreshTokenKey, tokens.refreshToken);
   },
 
   setLoading: (isLoading: boolean) => {
@@ -202,8 +165,8 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
 
   initializeAuth: () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const refreshToken = localStorage.getItem('refresh_token');
+      const token = localStorage.getItem(tokenKey);
+      const refreshToken = localStorage.getItem(refreshTokenKey);
       const userStr = localStorage.getItem('user');
 
       if (token && refreshToken && userStr) {
@@ -216,9 +179,8 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
       }
     } catch (error) {
       console.error('Failed to initialize auth:', error);
-      // Clear corrupted data
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
+      localStorage.removeItem(tokenKey);
+      localStorage.removeItem(refreshTokenKey);
       localStorage.removeItem('user');
     }
   },

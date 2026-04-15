@@ -131,19 +131,9 @@ export function buildDjangoUrl(
 export function initializeDjangoSPA(): void {
   if (!isDjangoSPA()) return;
 
-  console.log('🐍 Initializing Django SPA integration...');
-
-  // Set up CSRF token for all requests
-  const csrfToken = getCSRFToken();
-  if (csrfToken) {
-    console.log('🔒 CSRF token configured for Django SPA mode');
-  }
-
-  // Initialize user data if available
-  const djangoUser = getDjangoUser();
-  if (djangoUser) {
-    console.log('👤 Django user data loaded:', djangoUser);
-  }
+  // Warm CSRF token and user data caches
+  getCSRFToken();
+  getDjangoUser();
 
   // Set up Django-specific error handling
   window.addEventListener('unhandledrejection', event => {
@@ -220,7 +210,7 @@ export class DjangoUrlHelper {
   }
 
   static buildApiUrl(endpoint: string): string {
-    const apiPrefix = config.django?.apiPrefix || '/api/v1';
+    const apiPrefix = config.django?.apiPrefix || '/api';
     return `${apiPrefix}/${endpoint.replace(/^\//, '')}`;
   }
 }

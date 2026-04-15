@@ -10,6 +10,41 @@ import axios, {
 } from 'axios';
 
 /**
+ * snake_case ↔ camelCase transforms for Django interop.
+ * Django's CamelCaseSchema.model_dump() override is bypassed for list responses,
+ * so we normalize on the frontend as belt-and-suspenders.
+ */
+function snakeToCamelStr(s: string): string {
+  return s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+function camelToSnakeStr(s: string): string {
+  return s.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function snakeToCamel(data: any): any {
+  if (Array.isArray(data)) return data.map(snakeToCamel);
+  if (data !== null && typeof data === 'object' && !(data instanceof File)) {
+    return Object.fromEntries(
+      Object.entries(data).map(([k, v]) => [snakeToCamelStr(k), snakeToCamel(v)])
+    );
+  }
+  return data;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function camelToSnake(data: any): any {
+  if (Array.isArray(data)) return data.map(camelToSnake);
+  if (data !== null && typeof data === 'object' && !(data instanceof File)) {
+    return Object.fromEntries(
+      Object.entries(data).map(([k, v]) => [camelToSnakeStr(k), camelToSnake(v)])
+    );
+  }
+  return data;
+}
+
+/**
  * Extended request config with retry flag
  */
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -56,6 +91,11 @@ const createApiInstance = (): AxiosInstance => {
         }
       }
 
+      // Convert outgoing request body from camelCase to snake_case
+      if (requestConfig.data && typeof requestConfig.data === 'object') {
+        requestConfig.data = camelToSnake(requestConfig.data);
+      }
+
       return requestConfig;
     },
     (error: AxiosError) => {
@@ -63,9 +103,14 @@ const createApiInstance = (): AxiosInstance => {
     }
   );
 
-  // Response interceptor to handle common responses
+  // Response interceptor: snake_case → camelCase
+  // Django's CamelCaseSchema.model_dump() override is bypassed for list responses,
+  // so we normalize all response data on the frontend as belt-and-suspenders.
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
+      if (response.data) {
+        response.data = snakeToCamel(response.data);
+      }
       return response;
     },
     async (error: AxiosError<DjangoErrorResponse>) => {
@@ -87,27 +132,24 @@ const createApiInstance = (): AxiosInstance => {
             config.auth.refreshTokenKey
           );
           if (refreshToken) {
-            // Django Ninja JWT uses /token/refresh with 'refresh' field
-            const refreshPath = isDjangoSPA()
-              ? '/token/refresh'
-              : '/auth/refresh';
-            const refreshPayload = isDjangoSPA()
-              ? { refresh: refreshToken }
-              : { refreshToken };
+            const refreshPath = '/auth/token/refresh';
+            const refreshPayload = { refresh: refreshToken };
 
             const response = await instance.post<
-              ApiResponse<{ accessToken: string }> | { access: string }
+              ApiResponse<{ accessToken: string }> | { token: string } | { access: string }
             >(refreshPath, refreshPayload);
 
-            // Handle both response formats
+            // Handle response formats: Django {token}, legacy {access}, or wrapped {data: {accessToken}}
             let newToken: string;
-            if ('access' in response.data) {
-              newToken = response.data.access;
+            if ('token' in response.data) {
+              newToken = response.data.token as string;
+            } else if ('access' in response.data) {
+              newToken = response.data.access as string;
             } else if (
               'data' in response.data &&
-              response.data.data?.accessToken
+              (response.data as ApiResponse<{ accessToken: string }>).data?.accessToken
             ) {
-              newToken = response.data.data.accessToken;
+              newToken = (response.data as ApiResponse<{ accessToken: string }>).data.accessToken;
             } else {
               throw new Error('Invalid refresh response');
             }
@@ -124,12 +166,7 @@ const createApiInstance = (): AxiosInstance => {
           localStorage.removeItem(config.auth.refreshTokenKey);
           localStorage.removeItem('user');
 
-          // Redirect based on mode
-          if (isDjangoSPA()) {
-            window.location.href = '/auth/login';
-          } else {
-            window.location.href = '/auth/login';
-          }
+          window.location.href = '/auth/login';
           return Promise.reject(refreshError);
         }
       }

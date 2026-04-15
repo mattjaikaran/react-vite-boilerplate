@@ -15,9 +15,10 @@ export interface AuthTokens {
 
 /**
  * Django Ninja JWT token format
+ * Backend TokenSchema returns { token, refresh, user }
  */
 export interface DjangoJWTTokens {
-  access: string;
+  token: string;
   refresh: string;
 }
 
@@ -27,9 +28,9 @@ export interface DjangoJWTTokens {
 export function normalizeTokens(
   tokens: AuthTokens | DjangoJWTTokens
 ): AuthTokens {
-  if ('access' in tokens) {
+  if ('token' in tokens) {
     return {
-      accessToken: tokens.access,
+      accessToken: tokens.token,
       refreshToken: tokens.refresh,
     };
   }
@@ -96,10 +97,10 @@ export interface AuthResponse {
 
 /**
  * Django Ninja JWT auth response format
- * The user may be returned separately or inline
+ * Backend returns { token, refresh, user } from TokenSchema
  */
 export interface DjangoAuthResponse {
-  access: string;
+  token: string;
   refresh: string;
   user?: DjangoUserResponse;
 }
@@ -148,7 +149,7 @@ export function normalizeAuthResponse(
   const djangoResponse = response as DjangoAuthResponse;
   return {
     tokens: {
-      accessToken: djangoResponse.access,
+      accessToken: djangoResponse.token,
       refreshToken: djangoResponse.refresh,
     },
     user: djangoResponse.user

@@ -45,7 +45,7 @@ class AuthServiceClass {
    */
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
     const response = await api.post<ApiResponse<AuthResponse>>(
-      `${this.basePath}/register`,
+      `${this.basePath}/signup`,
       credentials
     );
     return handleApiResponse(response);

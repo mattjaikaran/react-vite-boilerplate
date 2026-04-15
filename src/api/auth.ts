@@ -1,4 +1,3 @@
-import { config } from '@/config';
 import { apiClient, handleApiResponse } from '@/lib/api';
 import type {
   AuthResponse,
@@ -20,22 +19,17 @@ import {
  * Django Ninja JWT typically uses /token/pair for login
  */
 const getAuthPaths = () => {
-  const isDjango = config.env.mode === 'django-spa';
   return {
-    login: isDjango ? '/token/pair' : '/auth/login',
-    register: isDjango ? '/users/register' : '/auth/register',
-    refresh: isDjango ? '/token/refresh' : '/auth/refresh',
-    profile: isDjango ? '/users/me' : '/auth/profile',
-    magicLink: '/auth/magic-link',
-    verifyMagicLink: '/auth/verify-magic-link',
+    login: '/auth/login',
+    register: '/auth/signup',
+    refresh: '/auth/token/refresh',
+    profile: '/auth/me',
+    magicLink: '/auth/passwordless/login/request',
+    verifyMagicLink: '/auth/passwordless/login/verify',
     logout: '/auth/logout',
-    changePassword: isDjango
-      ? '/users/change-password'
-      : '/auth/change-password',
-    requestPasswordReset: isDjango
-      ? '/users/request-password-reset'
-      : '/auth/request-password-reset',
-    resetPassword: isDjango ? '/users/reset-password' : '/auth/reset-password',
+    changePassword: '/auth/change-password',
+    requestPasswordReset: '/otp/password-reset/request',
+    resetPassword: '/otp/password-reset/confirm',
   };
 };
 
@@ -46,16 +40,10 @@ export const authApi = {
    */
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const paths = getAuthPaths();
-    const isDjango = config.env.mode === 'django-spa';
-
-    // Django Ninja JWT expects 'username' or 'email' field
-    const payload = isDjango
-      ? { email: credentials.email, password: credentials.password }
-      : credentials;
 
     const response = await apiClient.post<AuthResponse | DjangoAuthResponse>(
       paths.login,
-      payload
+      { email: credentials.email, password: credentials.password }
     );
     const data = handleApiResponse(response);
     return normalizeAuthResponse(data);
@@ -67,15 +55,10 @@ export const authApi = {
    */
   register: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
     const paths = getAuthPaths();
-    const isDjango = config.env.mode === 'django-spa';
-
-    const payload = isDjango
-      ? toDjangoRegisterCredentials(credentials)
-      : credentials;
 
     const response = await apiClient.post<AuthResponse | DjangoAuthResponse>(
       paths.register,
-      payload
+      toDjangoRegisterCredentials(credentials)
     );
     const data = handleApiResponse(response);
     return normalizeAuthResponse(data);
@@ -116,19 +99,14 @@ export const authApi = {
     refreshToken: string
   ): Promise<{ accessToken: string }> => {
     const paths = getAuthPaths();
-    const isDjango = config.env.mode === 'django-spa';
-
-    // Django Ninja JWT expects 'refresh' field
-    const payload = isDjango ? { refresh: refreshToken } : { refreshToken };
 
     const response = await apiClient.post<
-      { accessToken: string } | { access: string }
-    >(paths.refresh, payload);
+      { accessToken: string } | { token: string }
+    >(paths.refresh, { refresh: refreshToken });
     const data = handleApiResponse(response);
 
-    // Normalize response
-    if ('access' in data) {
-      return { accessToken: data.access };
+    if ('token' in data) {
+      return { accessToken: data.token };
     }
     return data;
   },
@@ -158,7 +136,6 @@ export const authApi = {
     );
     const data = handleApiResponse(response);
 
-    // Normalize if Django format
     if ('first_name' in data) {
       return normalizeUser(data as DjangoUserResponse);
     }
@@ -167,28 +144,20 @@ export const authApi = {
 
   /**
    * Update user profile
-   * Converts to snake_case for Django
    */
   updateProfile: async (updates: Partial<User>): Promise<User> => {
     const paths = getAuthPaths();
-    const isDjango = config.env.mode === 'django-spa';
-
-    // Convert to snake_case for Django
-    const payload = isDjango
-      ? {
-          first_name: updates.firstName,
-          last_name: updates.lastName,
-          email: updates.email,
-        }
-      : updates;
 
     const response = await apiClient.patch<User | DjangoUserResponse>(
       paths.profile,
-      payload
+      {
+        first_name: updates.firstName,
+        last_name: updates.lastName,
+        email: updates.email,
+      }
     );
     const data = handleApiResponse(response);
 
-    // Normalize if Django format
     if ('first_name' in data) {
       return normalizeUser(data as DjangoUserResponse);
     }
@@ -203,18 +172,13 @@ export const authApi = {
     newPassword: string;
   }): Promise<{ message: string }> => {
     const paths = getAuthPaths();
-    const isDjango = config.env.mode === 'django-spa';
-
-    const payload = isDjango
-      ? {
-          old_password: data.currentPassword,
-          new_password: data.newPassword,
-        }
-      : data;
 
     const response = await apiClient.post<{ message: string }>(
       paths.changePassword,
-      payload
+      {
+        old_password: data.currentPassword,
+        new_password: data.newPassword,
+      }
     );
     return handleApiResponse(response);
   },
@@ -239,15 +203,10 @@ export const authApi = {
     newPassword: string;
   }): Promise<{ message: string }> => {
     const paths = getAuthPaths();
-    const isDjango = config.env.mode === 'django-spa';
-
-    const payload = isDjango
-      ? { token: data.token, new_password: data.newPassword }
-      : data;
 
     const response = await apiClient.post<{ message: string }>(
       paths.resetPassword,
-      payload
+      { token: data.token, new_password: data.newPassword }
     );
     return handleApiResponse(response);
   },
