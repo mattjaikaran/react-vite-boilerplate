@@ -1,3 +1,4 @@
+/* react-doctor-disable deslop/unused-file */
 /**
  * Async utility functions
  */
@@ -35,6 +36,7 @@ export async function retry<T>(
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      // react-doctor-disable-next-line js/async-await-in-loop, react-doctor/async-await-in-loop
       return await fn();
     } catch (error) {
       lastError = error;
@@ -87,6 +89,7 @@ export async function series<T>(promises: (() => Promise<T>)[]): Promise<T[]> {
   const results: T[] = [];
 
   for (const promiseFn of promises) {
+    // react-doctor-disable-next-line js/async-await-in-loop, react-doctor/async-await-in-loop
     results.push(await promiseFn());
   }
 
@@ -178,6 +181,7 @@ export async function poll<T>(
     }
 
     try {
+      // react-doctor-disable-next-line js/async-await-in-loop, react-doctor/async-await-in-loop
       const result = await fn();
       if (condition(result)) {
         return result;

@@ -128,7 +128,7 @@ export function DonutChart({
 
         {/* Percentage labels on chart */}
         {showLabels &&
-          segments.map((segment, i) => {
+          segments.map(segment => {
             const midAngle =
               ((segment.startAngle + segment.endAngle) / 2) * (Math.PI / 180);
             const labelRadius = 50 - thickness - 5;
@@ -137,7 +137,7 @@ export function DonutChart({
 
             return segment.percentage > 5 ? (
               <span
-                key={i}
+                key={segment.label}
                 className="absolute text-xs font-medium"
                 style={{
                   left: `${x}%`,
@@ -154,10 +154,10 @@ export function DonutChart({
       {/* Legend */}
       {showLegend && (
         <div className="flex flex-col gap-2">
-          {segments.map((segment, i) => (
-            <div key={i} className="flex items-center gap-2">
+          {segments.map(segment => (
+            <div key={segment.label} className="flex items-center gap-2">
               <div
-                className="h-3 w-3 rounded-full"
+                className="size-3 rounded-full"
                 style={{ backgroundColor: segment.color }}
               />
               <span className="text-sm text-muted-foreground">

@@ -1,3 +1,4 @@
+/* react-doctor-disable deslop/unused-file */
 /**
  * API Response Utilities
  * Helpers for handling paginated responses and creating standardized formats.

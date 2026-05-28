@@ -46,7 +46,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
 
       localStorage.setItem(tokenKey, tokens.accessToken);
       localStorage.setItem(refreshTokenKey, tokens.refreshToken);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user_v1', JSON.stringify(user));
 
       set({
         user,
@@ -71,7 +71,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
 
       localStorage.setItem(tokenKey, tokens.accessToken);
       localStorage.setItem(refreshTokenKey, tokens.refreshToken);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user_v1', JSON.stringify(user));
 
       set({
         user,
@@ -109,7 +109,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
   logout: () => {
     localStorage.removeItem(tokenKey);
     localStorage.removeItem(refreshTokenKey);
-    localStorage.removeItem('user');
+    localStorage.removeItem('user_v1');
 
     set({
       user: null,
@@ -142,7 +142,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
 
   setUser: (user: User) => {
     set({ user });
-    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('user_v1', JSON.stringify(user));
   },
 
   setTokens: (tokens: AuthTokens) => {
@@ -167,7 +167,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
     try {
       const token = localStorage.getItem(tokenKey);
       const refreshToken = localStorage.getItem(refreshTokenKey);
-      const userStr = localStorage.getItem('user');
+      const userStr = localStorage.getItem('user_v1');
 
       if (token && refreshToken && userStr) {
         const user = JSON.parse(userStr);
@@ -181,7 +181,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
       console.error('Failed to initialize auth:', error);
       localStorage.removeItem(tokenKey);
       localStorage.removeItem(refreshTokenKey);
-      localStorage.removeItem('user');
+      localStorage.removeItem('user_v1');
     }
   },
 });

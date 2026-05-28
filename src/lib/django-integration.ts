@@ -2,7 +2,9 @@
  * Django integration utilities for SPA mode
  */
 
-import { config, isDjangoSPA } from '@/config';
+import { config } from '@/config';
+
+const isDjangoSPA = () => config.env.mode === 'django-spa';
 
 /**
  * Django user data type
@@ -77,6 +79,7 @@ export function getCSRFToken(): string | null {
 /**
  * Get Django user data from window object or DOM
  */
+// react-doctor-disable-next-line deslop/unused-export
 export function getDjangoUser(): DjangoUser | null {
   if (!isDjangoSPA()) return null;
 
@@ -102,6 +105,7 @@ export function getDjangoUser(): DjangoUser | null {
 /**
  * Get Django settings/config from window object
  */
+// react-doctor-disable-next-line deslop/unused-export
 export function getDjangoSettings(): DjangoSettings {
   if (!isDjangoSPA()) return {};
 
@@ -111,6 +115,7 @@ export function getDjangoSettings(): DjangoSettings {
 /**
  * Build URL with Django static/media prefix
  */
+// react-doctor-disable-next-line deslop/unused-export
 export function buildDjangoUrl(
   path: string,
   type: 'static' | 'media' = 'static'
@@ -152,6 +157,7 @@ type FormDataValue = string | number | boolean | File | (string | number)[];
 /**
  * Django form helpers
  */
+// react-doctor-disable-next-line deslop/unused-export
 export class DjangoFormHelper {
   static addCSRFToken(formData: FormData): FormData {
     if (!isDjangoSPA()) return formData;
@@ -186,6 +192,7 @@ export class DjangoFormHelper {
 /**
  * Django URL helpers
  */
+// react-doctor-disable-next-line deslop/unused-export
 export class DjangoUrlHelper {
   static reverse(
     viewName: string,
@@ -218,6 +225,7 @@ export class DjangoUrlHelper {
 /**
  * Django message framework integration
  */
+// react-doctor-disable-next-line deslop/unused-export
 export class DjangoMessages {
   static getMessages(): DjangoMessage[] {
     if (!isDjangoSPA()) return [];

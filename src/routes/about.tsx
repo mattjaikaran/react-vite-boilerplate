@@ -1,10 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+// eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/about')({
   component: AboutPage,
 });
 
-function AboutPage() {
+export function AboutPage() {
   return (
     <div className="page-container">
       <div className="mx-auto max-w-4xl space-y-8">

@@ -1,19 +1,28 @@
-import { apiClient, createQueryKey, handleApiResponse } from '@/lib/api';
+import { apiClient, buildQueryString, createQueryKey, handleApiResponse } from '@/lib/api';
 import type {
   CreateTodoRequest,
+  DjangoPaginatedResponse,
   PaginatedResponse,
   QueryParams,
   Todo,
   UpdateTodoRequest,
 } from '@/types';
+import { normalizePaginatedResponse } from '@/types/api';
 
 export const todosApi = {
   // Get all todos with optional filtering and pagination
   getTodos: async (params?: QueryParams): Promise<PaginatedResponse<Todo>> => {
-    const response = await apiClient.get<PaginatedResponse<Todo>>('/todos', {
-      params,
-    });
-    return handleApiResponse(response);
+    const queryString = params ? buildQueryString(params) : '';
+    const url = queryString ? `/todos?${queryString}` : '/todos';
+    const response = await apiClient.get<
+      PaginatedResponse<Todo> | DjangoPaginatedResponse<Todo>
+    >(url);
+    const data = handleApiResponse(response);
+    // Normalize Django paginated format if needed
+    if ('items' in data) {
+      return normalizePaginatedResponse(data as DjangoPaginatedResponse<Todo>);
+    }
+    return data as PaginatedResponse<Todo>;
   },
 
   // Get a single todo by ID

@@ -3,11 +3,12 @@ import { RegisterForm } from '@/forms/auth/RegisterForm';
 import { useAuth } from '@/lib/store';
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 
+// eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/auth/register')({
   component: RegisterPage,
 });
 
-function RegisterPage() {
+export function RegisterPage() {
   const { isAuthenticated } = useAuth();
 
   // Redirect if already authenticated

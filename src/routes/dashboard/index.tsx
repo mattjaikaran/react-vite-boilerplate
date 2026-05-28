@@ -125,7 +125,7 @@ function DashboardPage() {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
+                <Activity className="size-5" />
                 Weekly Activity
               </CardTitle>
               <CardDescription>Tasks completed this week</CardDescription>
@@ -177,7 +177,7 @@ function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+                <Calendar className="size-5" />
                 Monthly Trend
               </CardTitle>
               <CardDescription>Completed tasks over time</CardDescription>
@@ -211,7 +211,7 @@ function DashboardPage() {
                       className="flex items-center gap-3 rounded-lg bg-muted/50 p-3 transition-colors hover:bg-muted"
                     >
                       <div
-                        className={`h-2 w-2 rounded-full ${
+                        className={`size-2 rounded-full ${
                           todo.completed
                             ? 'bg-emerald-500'
                             : todo.priority === 'high'

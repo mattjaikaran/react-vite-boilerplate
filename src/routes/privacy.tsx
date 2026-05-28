@@ -1,16 +1,19 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+const LAST_UPDATED = new Date().toLocaleDateString();
+
+// eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/privacy')({
   component: PrivacyPage,
 });
 
-function PrivacyPage() {
+export function PrivacyPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <div className="prose prose-gray dark:prose-invert max-w-none">
         <h1 className="text-3xl font-bold tracking-tight">Privacy Policy</h1>
         <p className="text-lg text-muted-foreground">
-          Last updated: {new Date().toLocaleDateString()}
+          Last updated: {LAST_UPDATED}
         </p>
 
         <section className="mt-8">

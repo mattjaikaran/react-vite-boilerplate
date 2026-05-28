@@ -6,11 +6,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { createFileRoute } from '@tanstack/react-router';
 import { Github, Linkedin, Mail, Twitter } from 'lucide-react';
 
+// eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/contact')({
   component: ContactPage,
 });
 
-function ContactPage() {
+export function ContactPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: wire to API
@@ -18,8 +19,8 @@ function ContactPage() {
 
   return (
     <div className="page-container">
-      <div className="mx-auto max-w-4xl space-y-8">
-        <div className="space-y-4 text-center">
+      <div className="mx-auto max-w-4xl gap-y-8">
+        <div className="gap-y-4 text-center">
           <h1 className="text-4xl font-bold tracking-tight">Contact Us</h1>
           <p className="text-xl text-muted-foreground">
             Get in touch with questions, feedback, or collaboration ideas
@@ -32,29 +33,29 @@ function ContactPage() {
               <CardTitle>Send us a message</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="gap-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                  <div className="gap-y-2">
                     <Label htmlFor="firstName">First Name</Label>
                     <Input id="firstName" placeholder="Your first name" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="gap-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
                     <Input id="lastName" placeholder="Your last name" />
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="gap-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" type="email" placeholder="your@email.com" />
                 </div>
 
-                <div className="space-y-2">
+                <div className="gap-y-2">
                   <Label htmlFor="subject">Subject</Label>
                   <Input id="subject" placeholder="What's this about?" />
                 </div>
 
-                <div className="space-y-2">
+                <div className="gap-y-2">
                   <Label htmlFor="message">Message</Label>
                   <Textarea
                     id="message"
@@ -70,14 +71,14 @@ function ContactPage() {
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div className="gap-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Get in touch</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
+              <CardContent className="gap-y-4">
+                <div className="flex items-center gap-x-3">
+                  <Mail className="size-5 text-muted-foreground" />
                   <div>
                     <p className="font-medium">Email</p>
                     <p className="text-sm text-muted-foreground">
@@ -88,14 +89,14 @@ function ContactPage() {
 
                 <div className="border-t pt-4">
                   <p className="mb-3 font-medium">Follow us</p>
-                  <div className="flex space-x-4">
+                  <div className="flex gap-x-4">
                     <a
                       href="https://github.com"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-muted-foreground transition-colors hover:text-primary"
                     >
-                      <Github className="h-5 w-5" />
+                      <Github className="size-5" />
                     </a>
                     <a
                       href="https://twitter.com"
@@ -103,7 +104,7 @@ function ContactPage() {
                       rel="noopener noreferrer"
                       className="text-muted-foreground transition-colors hover:text-primary"
                     >
-                      <Twitter className="h-5 w-5" />
+                      <Twitter className="size-5" />
                     </a>
                     <a
                       href="https://linkedin.com"
@@ -111,7 +112,7 @@ function ContactPage() {
                       rel="noopener noreferrer"
                       className="text-muted-foreground transition-colors hover:text-primary"
                     >
-                      <Linkedin className="h-5 w-5" />
+                      <Linkedin className="size-5" />
                     </a>
                   </div>
                 </div>
@@ -122,7 +123,7 @@ function ContactPage() {
               <CardHeader>
                 <CardTitle>FAQ</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="gap-y-4">
                 <div>
                   <p className="font-medium">How can I contribute?</p>
                   <p className="mt-1 text-sm text-muted-foreground">

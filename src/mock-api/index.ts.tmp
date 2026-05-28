@@ -93,7 +93,6 @@ export const mockApi = {
       email: string;
       password: string;
     }): Promise<AuthResponse> => {
-      // react-doctor-disable-next-line js/async-defer-await, react-doctor/async-defer-await
       await delay(800); // Simulate network delay
 
       if (

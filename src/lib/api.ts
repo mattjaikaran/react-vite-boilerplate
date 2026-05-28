@@ -1,4 +1,6 @@
-import { config, isDjangoSPA } from '@/config';
+import { config } from '@/config';
+
+const isDjangoSPA = () => config.env.mode === 'django-spa';
 import { getCSRFToken } from '@/lib/django-integration';
 import type { ApiError, ApiResponse, QueryParams } from '@/types';
 import axios, {

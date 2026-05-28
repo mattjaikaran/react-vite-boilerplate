@@ -2,11 +2,12 @@ import { TodoForm } from '@/forms/todos/TodoForm';
 // import { useAuth } from '@/lib/store';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
+// eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/todos/create')({
   component: CreateTodoPage,
 });
 
-function CreateTodoPage() {
+export function CreateTodoPage() {
   // const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 

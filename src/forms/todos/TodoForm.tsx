@@ -208,7 +208,7 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
                 onClick={addTag}
                 disabled={!tagInput.trim()}
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="size-4" />
               </Button>
             </div>
             {tags.length > 0 && (
@@ -224,7 +224,7 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
                       onClick={() => removeTag(tag)}
                       className="hover:text-destructive"
                     >
-                      <X className="h-3 w-3" />
+                      <X className="size-3" />
                     </button>
                   </span>
                 ))}
@@ -234,7 +234,7 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
               {isEditing ? 'Update Todo' : 'Create Todo'}
             </Button>
             {onCancel && (

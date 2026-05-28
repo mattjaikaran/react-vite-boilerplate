@@ -21,11 +21,13 @@ export const useLogin = (
 ) => {
   const { login } = useAuth();
   const { addNotification } = useUI();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: data => {
       login(data as any); // Type assertion for store compatibility
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
       addNotification({
         type: 'success',
         title: 'Welcome back!',
@@ -48,11 +50,13 @@ export const useRegister = (
 ) => {
   const { register } = useAuth();
   const { addNotification } = useUI();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: authApi.register,
     onSuccess: data => {
       register(data as any); // Type assertion for store compatibility
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
       addNotification({
         type: 'success',
         title: 'Account created!',
@@ -74,10 +78,12 @@ export const useMagicLink = (
   options?: UseMutationOptions<{ message: string }, Error, MagicLinkRequest>
 ) => {
   const { addNotification } = useUI();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: authApi.magicLink,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
       addNotification({
         type: 'success',
         title: 'Magic link sent!',
@@ -172,11 +178,13 @@ export const useChangePassword = (
   >
 ) => {
   const { addNotification } = useUI();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: { currentPassword: string; newPassword: string }) =>
       authApi.changePassword(data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] });
       addNotification({
         type: 'success',
         title: 'Password changed',

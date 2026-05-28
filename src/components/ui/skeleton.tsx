@@ -50,7 +50,7 @@ function SkeletonText({
   lastLineWidth?: string;
 }) {
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('gap-y-2', className)}>
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton
           key={i}
@@ -82,10 +82,10 @@ function SkeletonAvatar({
  */
 function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('space-y-4 rounded-lg border p-4', className)}>
-      <div className="flex items-center space-x-4">
+    <div className={cn('gap-y-4 rounded-lg border p-4', className)}>
+      <div className="flex items-center gap-x-4">
         <SkeletonAvatar />
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 gap-y-2">
           <Skeleton className="h-4 w-1/2" />
           <Skeleton className="h-3 w-1/3" />
         </div>
@@ -106,7 +106,7 @@ function SkeletonTableRow({
   className?: string;
 }) {
   return (
-    <div className={cn('flex items-center space-x-4 py-3', className)}>
+    <div className={cn('flex items-center gap-x-4 py-3', className)}>
       {Array.from({ length: columns }).map((_, i) => (
         <Skeleton
           key={i}
@@ -131,9 +131,9 @@ function SkeletonTable({
   className?: string;
 }) {
   return (
-    <div className={cn('space-y-1', className)}>
+    <div className={cn('gap-y-1', className)}>
       {/* Header */}
-      <div className="flex items-center space-x-4 border-b py-3">
+      <div className="flex items-center gap-x-4 border-b py-3">
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton
             key={i}
@@ -161,9 +161,9 @@ function SkeletonForm({
   className?: string;
 }) {
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('gap-y-6', className)}>
       {Array.from({ length: fields }).map((_, i) => (
-        <div key={i} className="space-y-2">
+        <div key={i} className="gap-y-2">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-10 w-full" />
         </div>
@@ -178,10 +178,10 @@ function SkeletonForm({
  */
 function SkeletonStatCard({ className }: { className?: string }) {
   return (
-    <div className={cn('space-y-2 rounded-lg border p-6', className)}>
+    <div className={cn('gap-y-2 rounded-lg border p-6', className)}>
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-8 w-8" circle />
+        <Skeleton className="size-8" circle />
       </div>
       <Skeleton className="h-8 w-16" />
       <Skeleton className="h-3 w-20" />
@@ -194,9 +194,9 @@ function SkeletonStatCard({ className }: { className?: string }) {
  */
 function SkeletonListItem({ className }: { className?: string }) {
   return (
-    <div className={cn('flex items-center space-x-4 py-3', className)}>
-      <Skeleton className="h-2 w-2" circle />
-      <div className="flex-1 space-y-1">
+    <div className={cn('flex items-center gap-x-4 py-3', className)}>
+      <Skeleton className="size-2" circle />
+      <div className="flex-1 gap-y-1">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-3 w-1/2" />
       </div>
@@ -210,7 +210,7 @@ function SkeletonListItem({ className }: { className?: string }) {
  */
 function SkeletonPageHeader({ className }: { className?: string }) {
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('gap-y-2', className)}>
       <Skeleton className="h-8 w-48" />
       <Skeleton className="h-4 w-96" />
     </div>

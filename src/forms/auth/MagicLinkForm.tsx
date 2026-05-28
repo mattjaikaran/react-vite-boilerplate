@@ -53,8 +53,8 @@ export function MagicLinkForm({
     <Form {...form}>
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Mail className="h-6 w-6 text-primary" />
+          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10">
+            <Mail className="size-6 text-primary" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
             Magic Link Sign In
@@ -90,7 +90,7 @@ export function MagicLinkForm({
             disabled={magicLinkMutation.isPending}
           >
             {magicLinkMutation.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
             )}
             Send Magic Link
           </Button>

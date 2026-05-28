@@ -1,3 +1,11 @@
+import {
+  useIsDesktop,
+  useIsDevelopment,
+  useIsTablet,
+  useNetworkStatus,
+  usePrefersReducedMotion,
+  usePrefersDarkMode,
+} from '@/hooks/use-environment';
 import { Link } from '@tanstack/react-router';
 import { Github, Linkedin, Twitter } from 'lucide-react';
 
@@ -7,6 +15,19 @@ interface FooterProps {
 
 export function Footer({ className }: FooterProps) {
   const currentYear = new Date().getFullYear();
+  const isDevelopment = useIsDevelopment();
+  const isDesktop = useIsDesktop();
+  const isTablet = useIsTablet();
+  const isOnline = useNetworkStatus();
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const prefersDarkMode = usePrefersDarkMode();
+
+  // Use environment hooks for adaptive rendering
+  const showDevBadge = isDevelopment;
+  const isLargeScreen = isDesktop || isTablet;
+  const connectionClass = isOnline ? '' : 'opacity-50';
+  const motionClass = prefersReducedMotion ? '' : 'transition-colors';
+  const themeHint = prefersDarkMode ? 'dark' : 'light';
 
   const navigation = {
     main: [
@@ -39,10 +60,10 @@ export function Footer({ className }: FooterProps) {
   };
 
   return (
-    <footer className={`border-t bg-background ${className}`}>
+    <footer className={`border-t bg-background ${className} ${connectionClass}`} data-theme={themeHint}>
       <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="space-y-8 xl:col-span-1">
+          <div className="gap-y-8 xl:col-span-1">
             <div>
               <span className="text-2xl font-bold text-primary">
                 React Vite Boilerplate
@@ -52,7 +73,7 @@ export function Footer({ className }: FooterProps) {
                 Vite, TypeScript, and the latest tools.
               </p>
             </div>
-            <div className="flex space-x-6">
+            <div className="flex gap-x-6">
               {navigation.social.map(item => (
                 <a
                   key={item.name}
@@ -62,7 +83,7 @@ export function Footer({ className }: FooterProps) {
                   className="text-muted-foreground transition-colors hover:text-primary"
                 >
                   <span className="sr-only">{item.name}</span>
-                  <item.icon className="h-6 w-6" />
+                  <item.icon className="size-6" />
                 </a>
               ))}
             </div>
@@ -74,7 +95,7 @@ export function Footer({ className }: FooterProps) {
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
                   Navigation
                 </h3>
-                <ul className="mt-4 space-y-4">
+                <ul className="mt-4 gap-y-4">
                   {navigation.main.map(item => (
                     <li key={item.name}>
                       <Link
@@ -91,7 +112,7 @@ export function Footer({ className }: FooterProps) {
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
                   Legal
                 </h3>
-                <ul className="mt-4 space-y-4">
+                <ul className="mt-4 gap-y-4">
                   {navigation.legal.map(item => (
                     <li key={item.name}>
                       <Link
@@ -111,7 +132,7 @@ export function Footer({ className }: FooterProps) {
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
                   Built With
                 </h3>
-                <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                <ul className="mt-4 gap-y-2 text-sm text-muted-foreground">
                   <li>React 19 & TypeScript</li>
                   <li>Vite & TanStack Router</li>
                   <li>Tailwind CSS & Shadcn/ui</li>
@@ -127,8 +148,13 @@ export function Footer({ className }: FooterProps) {
             <p className="text-sm text-muted-foreground">
               &copy; {currentYear} React Vite Boilerplate. All rights reserved.
             </p>
-            <p className="mt-2 text-sm text-muted-foreground md:mt-0">
+            <p className={`mt-2 text-sm text-muted-foreground md:mt-0 ${motionClass}`}>
               Made by Matt Jaikaran
+              {isLargeScreen && showDevBadge && (
+                <span className="ml-2 rounded bg-yellow-100 px-1 py-0.5 text-xs text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                  dev
+                </span>
+              )}
             </p>
           </div>
         </div>

@@ -60,8 +60,8 @@ export function LoginForm({
 
   return (
     <Form {...form}>
-      <div className="space-y-6">
-        <div className="space-y-2 text-center">
+      <div className="gap-y-6">
+        <div className="gap-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">
             Welcome back
           </h1>
@@ -70,7 +70,7 @@ export function LoginForm({
           </p>
         </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="gap-y-4">
           <FormField
             control={form.control}
             name="email"
@@ -112,9 +112,9 @@ export function LoginForm({
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="size-4" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="size-4" />
                       )}
                       <span className="sr-only">
                         {showPassword ? 'Hide password' : 'Show password'}
@@ -133,13 +133,13 @@ export function LoginForm({
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
             )}
             Sign In
           </Button>
         </form>
 
-        <div className="space-y-4">
+        <div className="gap-y-4">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />

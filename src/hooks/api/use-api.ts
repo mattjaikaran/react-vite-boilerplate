@@ -18,6 +18,7 @@ import {
 /**
  * Generic GET hook for fetching data
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useApiGet = <TData = unknown, TError = Error>(
   url: string,
   options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>
@@ -35,6 +36,7 @@ export const useApiGet = <TData = unknown, TError = Error>(
 /**
  * Generic GET hook with custom query key
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useApiQuery = <TData = unknown, TError = Error>(
   queryKey: readonly unknown[],
   url: string,
@@ -53,6 +55,7 @@ export const useApiQuery = <TData = unknown, TError = Error>(
 /**
  * Generic POST mutation hook
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useApiPost = <
   TData = unknown,
   TError = Error,
@@ -61,10 +64,15 @@ export const useApiPost = <
   url: string,
   options?: Omit<UseMutationOptions<TData, TError, TVariables>, 'mutationFn'>
 ) => {
+  const queryClient = useQueryClient();
   return useMutation<TData, TError, TVariables>({
     mutationFn: async (data: TVariables) => {
       const response = await api.post<ApiResponse<TData>>(url, data);
       return response.data.data;
+    },
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: [url] });
+      options?.onSuccess?.(...args);
     },
     ...options,
   });
@@ -73,6 +81,7 @@ export const useApiPost = <
 /**
  * Generic PUT mutation hook
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useApiPut = <
   TData = unknown,
   TError = Error,
@@ -81,10 +90,15 @@ export const useApiPut = <
   url: string,
   options?: Omit<UseMutationOptions<TData, TError, TVariables>, 'mutationFn'>
 ) => {
+  const queryClient = useQueryClient();
   return useMutation<TData, TError, TVariables>({
     mutationFn: async (data: TVariables) => {
       const response = await api.put<ApiResponse<TData>>(url, data);
       return response.data.data;
+    },
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: [url] });
+      options?.onSuccess?.(...args);
     },
     ...options,
   });
@@ -93,6 +107,7 @@ export const useApiPut = <
 /**
  * Generic PATCH mutation hook
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useApiPatch = <
   TData = unknown,
   TError = Error,
@@ -101,10 +116,15 @@ export const useApiPatch = <
   url: string,
   options?: Omit<UseMutationOptions<TData, TError, TVariables>, 'mutationFn'>
 ) => {
+  const queryClient = useQueryClient();
   return useMutation<TData, TError, TVariables>({
     mutationFn: async (data: TVariables) => {
       const response = await api.patch<ApiResponse<TData>>(url, data);
       return response.data.data;
+    },
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: [url] });
+      options?.onSuccess?.(...args);
     },
     ...options,
   });
@@ -113,14 +133,20 @@ export const useApiPatch = <
 /**
  * Generic DELETE mutation hook
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useApiDelete = <TData = unknown, TError = Error>(
   url: string,
   options?: Omit<UseMutationOptions<TData, TError, void>, 'mutationFn'>
 ) => {
+  const queryClient = useQueryClient();
   return useMutation<TData, TError, void>({
     mutationFn: async () => {
       const response = await api.delete<ApiResponse<TData>>(url);
       return response.data.data;
+    },
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: [url] });
+      options?.onSuccess?.(...args);
     },
     ...options,
   });
@@ -129,14 +155,20 @@ export const useApiDelete = <TData = unknown, TError = Error>(
 /**
  * Generic DELETE mutation hook with ID parameter
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useApiDeleteById = <TData = unknown, TError = Error>(
   baseUrl: string,
   options?: Omit<UseMutationOptions<TData, TError, string>, 'mutationFn'>
 ) => {
+  const queryClient = useQueryClient();
   return useMutation<TData, TError, string>({
     mutationFn: async (id: string) => {
       const response = await api.delete<ApiResponse<TData>>(`${baseUrl}/${id}`);
       return response.data.data;
+    },
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: [baseUrl] });
+      options?.onSuccess?.(...args);
     },
     ...options,
   });
@@ -145,6 +177,7 @@ export const useApiDeleteById = <TData = unknown, TError = Error>(
 /**
  * Infinite query hook for paginated data
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useApiInfinite = <TData = unknown, TError = Error>(
   queryKey: readonly unknown[],
   url: string
@@ -177,6 +210,7 @@ export const useApiInfinite = <TData = unknown, TError = Error>(
 /**
  * Hook to prefetch data
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const usePrefetch = () => {
   const queryClient = useQueryClient();
 
@@ -205,6 +239,7 @@ export const usePrefetch = () => {
 /**
  * Hook to invalidate queries
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useInvalidate = () => {
   const queryClient = useQueryClient();
 

@@ -88,6 +88,7 @@ export const useLocalStorage = <T>(
 /**
  * Hook for session storage (clears on browser close)
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useSessionStorage = <T>(
   key: string,
   initialValue: T

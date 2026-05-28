@@ -35,7 +35,7 @@ export function AuthLayout({ children, requireAuth = true }: AuthLayoutProps) {
         <main className="flex flex-1 items-center justify-center">
           <div className="text-center">
             <div className="loading-spinner mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Loading…</p>
           </div>
         </main>
         <Footer />

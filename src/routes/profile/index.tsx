@@ -4,6 +4,7 @@
  */
 
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { AvatarImage } from '@/components/ui/image';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,10 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useTodoStats } from '@/hooks';
+import { useProfile, useTodoStats } from '@/hooks';
 import { useAuth } from '@/lib/store';
+import { formatDate } from '@/lib/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Calendar, Edit, Mail, MapPin, Settings } from 'lucide-react';
+
+const TODAY_FORMATTED = formatDate(new Date());
 
 export const Route = createFileRoute('/profile' as any)({
   component: ProfilePage,
@@ -23,7 +27,9 @@ export const Route = createFileRoute('/profile' as any)({
 
 function ProfilePage() {
   const { user } = useAuth();
+  const { data: profileData } = useProfile();
   const { data: stats } = useTodoStats();
+  const activeUser = profileData || user;
 
   return (
     <DashboardLayout>
@@ -33,28 +39,32 @@ function ProfilePage() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
               {/* Avatar */}
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/50 text-3xl font-bold text-primary-foreground">
-                {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+              <div className="relative">
+                <AvatarImage
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(activeUser?.firstName || activeUser?.email || 'U')}&size=96`}
+                  alt={activeUser?.firstName || 'User'}
+                  size={96}
+                />
               </div>
 
               {/* Info */}
               <div className="flex-1">
                 <h1 className="text-2xl font-bold">
-                  {user?.firstName && user?.lastName
-                    ? `${user.firstName} ${user.lastName}`
+                  {activeUser?.firstName && activeUser?.lastName
+                    ? `${activeUser.firstName} ${activeUser.lastName}`
                     : 'User'}
                 </h1>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
-                    <Mail className="h-4 w-4" />
-                    {user?.email || 'No email'}
+                    <Mail className="size-4" />
+                    {activeUser?.email || 'No email'}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    Joined {new Date().toLocaleDateString()}
+                    <Calendar className="size-4" />
+                    Joined {TODAY_FORMATTED}
                   </span>
                   <span className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
+                    <MapPin className="size-4" />
                     Location not set
                   </span>
                 </div>
@@ -64,13 +74,13 @@ function ProfilePage() {
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" asChild>
                   <Link to={'/settings' as any}>
-                    <Edit className="mr-2 h-4 w-4" />
+                    <Edit className="mr-2 size-4" />
                     Edit Profile
                   </Link>
                 </Button>
                 <Button variant="ghost" size="icon" asChild>
                   <Link to={'/settings' as any}>
-                    <Settings className="h-4 w-4" />
+                    <Settings className="size-4" />
                   </Link>
                 </Button>
               </div>
@@ -152,12 +162,12 @@ function ProfilePage() {
                   item: 'Fix login bug',
                   time: '2 days ago',
                 },
-              ].map((activity, i) => (
+              ].map(activity => (
                 <div
-                  key={i}
+                  key={`${activity.action}-${activity.item}`}
                   className="flex items-center gap-4 rounded-lg p-3 transition-colors hover:bg-muted/50"
                 >
-                  <div className="h-2 w-2 rounded-full bg-primary" />
+                  <div className="size-2 rounded-full bg-primary" />
                   <div className="flex-1">
                     <p className="text-sm">
                       <span className="font-medium">{activity.action}</span>

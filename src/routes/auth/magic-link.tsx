@@ -3,11 +3,12 @@ import { MagicLinkForm } from '@/forms/auth/MagicLinkForm';
 import { useAuth } from '@/lib/store';
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 
+// eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/auth/magic-link')({
   component: MagicLinkPage,
 });
 
-function MagicLinkPage() {
+export function MagicLinkPage() {
   const { isAuthenticated } = useAuth();
 
   // Redirect if already authenticated

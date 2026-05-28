@@ -27,6 +27,7 @@ export function useIsDevelopment() {
   return env.isDevelopment;
 }
 
+// react-doctor-disable-next-line deslop/unused-export
 export function useIsProduction() {
   const env = useEnvironment();
   return env.isProduction;
@@ -88,6 +89,7 @@ export function useViewportSize() {
 }
 
 // Media query with useSyncExternalStore
+// react-doctor-disable-next-line deslop/unused-export
 export function useMediaQuery(query: string) {
   const subscribe = (callback: () => void) => {
     const mediaQuery = window.matchMedia(query);

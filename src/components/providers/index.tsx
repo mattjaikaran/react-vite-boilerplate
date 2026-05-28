@@ -16,4 +16,3 @@ export function AppProviders({ children }: AppProvidersProps) {
   return <QueryProvider>{children}</QueryProvider>;
 }
 
-export { QueryProvider };

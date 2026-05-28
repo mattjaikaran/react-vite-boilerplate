@@ -35,6 +35,7 @@ interface OptimisticMutationOptions<TData, TVariables> {
 /**
  * Hook for mutations with optimistic updates
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useOptimisticMutation = <TData, TVariables>({
   queryKey,
   mutationFn,
@@ -82,6 +83,7 @@ export const useOptimisticMutation = <TData, TVariables>({
 /**
  * Hook for adding items with optimistic update
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useOptimisticAdd = <TItem extends { id: string }>(
   queryKey: readonly unknown[],
   mutationFn: (variables: Partial<TItem>) => Promise<TItem>
@@ -135,6 +137,7 @@ export const useOptimisticAdd = <TItem extends { id: string }>(
 /**
  * Hook for updating items with optimistic update
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useOptimisticUpdate = <TItem extends { id: string }>(
   queryKey: readonly unknown[],
   mutationFn: (variables: { id: string } & Partial<TItem>) => Promise<TItem>
@@ -176,6 +179,7 @@ export const useOptimisticUpdate = <TItem extends { id: string }>(
 /**
  * Hook for removing items with optimistic update
  */
+// react-doctor-disable-next-line deslop/unused-export
 export const useOptimisticRemove = <TItem extends { id: string }>(
   queryKey: readonly unknown[],
   mutationFn: (id: string) => Promise<{ message: string }>

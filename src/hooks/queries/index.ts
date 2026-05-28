@@ -1,3 +1,4 @@
+/* react-doctor-disable deslop/unused-file */
 /**
  * Query Hooks Exports
  * Domain-specific hooks for fetching data

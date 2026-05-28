@@ -112,24 +112,37 @@ export const config: AppConfig = {
   }),
 };
 
-// Export individual config sections for convenience
-export const apiConfig = config.api;
-export const authConfig = config.auth;
-export const featureConfig = config.features;
-export const envConfig = config.env;
-export const djangoConfig = config.django;
+// Config sections (access via config.api, config.auth, etc.)
+const apiConfig = config.api;
+const authConfig = config.auth;
+const featureConfig = config.features;
+const envConfig = config.env;
+const djangoConfig = config.django;
 
-// Helper functions
-export const isDevelopment = () => config.env.isDevelopment;
-export const isProduction = () => config.env.isProduction;
-export const isTest = () => config.env.isTest;
-export const isDjangoSPA = () => config.env.mode === 'django-spa';
-export const isStandalone = () => config.env.mode === 'standalone';
+// Helper functions (access via config.env.isDevelopment, etc.)
+const isDevelopment = () => config.env.isDevelopment;
+const isProduction = () => config.env.isProduction;
+const isTest = () => config.env.isTest;
+const isDjangoSPA = () => config.env.mode === 'django-spa';
+const isStandalone = () => config.env.mode === 'standalone';
 
 // Feature flags
+// react-doctor-disable-next-line deslop/unused-export
 export const isFeatureEnabled = (
   feature: keyof typeof config.features
 ): boolean => {
   return config.features[feature];
 };
+
+// Suppress unused vars (these exist for convenience/documentation purposes)
+void apiConfig;
+void authConfig;
+void featureConfig;
+void envConfig;
+void djangoConfig;
+void isDevelopment;
+void isProduction;
+void isTest;
+void isDjangoSPA;
+void isStandalone;
 

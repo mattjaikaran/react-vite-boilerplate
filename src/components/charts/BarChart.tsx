@@ -63,8 +63,8 @@ export function BarChart({
   if (horizontal) {
     return (
       <div className={cn('space-y-3', className)} style={{ minHeight: height }}>
-        {bars.map((bar, i) => (
-          <div key={i} className="space-y-1">
+        {bars.map((bar, barIndex) => (
+          <div key={bar.label} className="space-y-1">
             <div className="flex justify-between text-sm">
               <span className="max-w-[60%] truncate text-muted-foreground">
                 {bar.label}
@@ -84,7 +84,7 @@ export function BarChart({
                 style={{
                   width: `${bar.percentage}%`,
                   backgroundColor: bar.color || color,
-                  animationDelay: `${i * 100}ms`,
+                  animationDelay: `${barIndex * 100}ms`,
                 }}
               />
             </div>
@@ -98,9 +98,9 @@ export function BarChart({
     <div className={cn('flex flex-col', className)} style={{ height }}>
       {/* Chart area */}
       <div className="flex flex-1 items-end" style={{ gap }}>
-        {bars.map((bar, i) => (
+        {bars.map((bar, barIndex) => (
           <div
-            key={i}
+            key={bar.label}
             className="flex h-full flex-1 flex-col items-center justify-end"
           >
             {/* Value label */}
@@ -120,7 +120,7 @@ export function BarChart({
                 height: `${bar.percentage}%`,
                 backgroundColor: bar.color || color,
                 minHeight: bar.value > 0 ? 4 : 0,
-                animationDelay: `${i * 100}ms`,
+                animationDelay: `${barIndex * 100}ms`,
               }}
             />
           </div>
@@ -130,9 +130,9 @@ export function BarChart({
       {/* Labels */}
       {showLabels && (
         <div className="mt-2 flex" style={{ gap }}>
-          {bars.map((bar, i) => (
+          {bars.map(bar => (
             <span
-              key={i}
+              key={bar.label}
               className="flex-1 truncate text-center text-xs text-muted-foreground"
             >
               {bar.label}

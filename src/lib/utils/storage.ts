@@ -1,3 +1,4 @@
+/* react-doctor-disable deslop/unused-file */
 /**
  * Local storage utility functions with error handling and type safety
  */

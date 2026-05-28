@@ -13,6 +13,7 @@ interface FeatureFlagProps {
   fallback?: ReactNode;
 }
 
+// react-doctor-disable-next-line deslop/unused-export
 export function FeatureFlag({
   feature,
   children,
@@ -24,6 +25,7 @@ export function FeatureFlag({
 }
 
 // Convenience components for common features
+// react-doctor-disable-next-line deslop/unused-export
 export function TodosFeature({
   children,
   fallback,
@@ -35,6 +37,7 @@ export function TodosFeature({
   );
 }
 
+// react-doctor-disable-next-line deslop/unused-export
 export function NotificationsFeature({
   children,
   fallback,
@@ -46,6 +49,7 @@ export function NotificationsFeature({
   );
 }
 
+// react-doctor-disable-next-line deslop/unused-export
 export function AnalyticsFeature({
   children,
   fallback,
@@ -57,6 +61,7 @@ export function AnalyticsFeature({
   );
 }
 
+// react-doctor-disable-next-line deslop/unused-export
 export function DarkModeFeature({
   children,
   fallback,

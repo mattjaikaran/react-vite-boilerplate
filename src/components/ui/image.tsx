@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useReducer, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 type ObjectFit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
@@ -62,6 +62,34 @@ const FIT_MAP: Record<ObjectFit, string> = {
 const TRANSPARENT_GIF =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
+type ImageState = {
+  status: 'loading' | 'loaded' | 'error';
+  currentSrc: string;
+  prevSrc: string;
+};
+
+type ImageAction =
+  | { type: 'load' }
+  | { type: 'error'; fallbackSrc?: string }
+  | { type: 'src_changed'; src: string };
+
+function imageReducer(state: ImageState, action: ImageAction): ImageState {
+  switch (action.type) {
+    case 'load':
+      return { ...state, status: 'loaded' };
+    case 'error':
+      if (action.fallbackSrc && state.currentSrc !== action.fallbackSrc) {
+        return { ...state, currentSrc: action.fallbackSrc };
+      }
+      return { ...state, status: 'error' };
+    case 'src_changed':
+      return { status: 'loading', currentSrc: action.src, prevSrc: action.src };
+    default:
+      return state;
+  }
+}
+
+// react-doctor-disable-next-line deslop/unused-export
 export function Image({
   src,
   alt,
@@ -84,36 +112,37 @@ export function Image({
   style,
   ...rest
 }: ImageProps) {
-  const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
-  const [currentSrc, setCurrentSrc] = useState(src);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const [state, dispatch] = useReducer(imageReducer, {
+    status: 'loading',
+    currentSrc: src,
+    prevSrc: src,
+  });
 
-  // Sync src changes
-  useEffect(() => {
-    setCurrentSrc(src);
-    setStatus('loading');
-  }, [src]);
+  // Sync src prop changes without derived state
+  if (src !== state.prevSrc) {
+    dispatch({ type: 'src_changed', src });
+  }
+
+  const imgRef = useRef<HTMLImageElement>(null);
 
   // If the image is already cached the load event fires before React mounts — check immediately
   useEffect(() => {
     if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
-      setStatus('loaded');
+      dispatch({ type: 'load' });
     }
   }, []);
 
   function handleLoad() {
-    setStatus('loaded');
+    dispatch({ type: 'load' });
     onLoad?.();
   }
 
   function handleError() {
-    if (fallbackSrc && currentSrc !== fallbackSrc) {
-      setCurrentSrc(fallbackSrc);
-    } else {
-      setStatus('error');
-    }
+    dispatch({ type: 'error', fallbackSrc });
     onError?.();
   }
+
+  const { status, currentSrc } = state;
 
   const roundedClass =
     typeof rounded === 'boolean'
@@ -298,6 +327,7 @@ interface HeroImageProps extends Omit<ImageProps, 'layout' | 'objectFit'> {
   aspectRatio?: string;
 }
 
+// react-doctor-disable-next-line deslop/unused-export
 export function HeroImage({ aspectRatio = '16/9', ...props }: HeroImageProps) {
   return (
     <Image
@@ -315,6 +345,7 @@ interface ThumbnailImageProps extends Omit<ImageProps, 'layout' | 'objectFit'> {
   aspectRatio?: string;
 }
 
+// react-doctor-disable-next-line deslop/unused-export
 export function ThumbnailImage({ aspectRatio = '16/9', rounded = 'md', ...props }: ThumbnailImageProps) {
   return (
     <Image

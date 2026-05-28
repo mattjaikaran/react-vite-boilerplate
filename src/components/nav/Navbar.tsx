@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ModeToggle } from '@/components/ui/mode-toggle';
+import { useIsMobile } from '@/hooks';
 import { useLogout } from '@/hooks/use-auth';
 import { useAuth } from '@/lib/store';
 import { Link } from '@tanstack/react-router';
@@ -19,6 +20,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ className }: NavbarProps) {
+  const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const logoutMutation = useLogout();
@@ -49,7 +51,7 @@ export function Navbar({ className }: NavbarProps) {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden items-center space-x-8 md:flex">
+          <div className="hidden items-center gap-x-8 md:flex">
             {navigation.map(item => (
               <Link
                 key={item.name}
@@ -79,7 +81,7 @@ export function Navbar({ className }: NavbarProps) {
           </div>
 
           {/* Desktop Actions */}
-          <div className="hidden items-center space-x-4 md:flex">
+          <div className="hidden items-center gap-x-4 md:flex">
             <ModeToggle />
 
             {isAuthenticated ? (
@@ -87,14 +89,14 @@ export function Navbar({ className }: NavbarProps) {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
+                    className="relative size-8 rounded-full"
                   >
-                    <User className="h-4 w-4" />
+                    <User className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
+                    <div className="flex flex-col gap-y-1">
                       <p className="text-sm font-medium leading-none">
                         {user?.firstName} {user?.lastName}
                       </p>
@@ -105,13 +107,13 @@ export function Navbar({ className }: NavbarProps) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
+                    <LogOut className="mr-2 size-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-x-2">
                 <Button variant="ghost" asChild>
                   <Link to="/auth/login">Sign In</Link>
                 </Button>
@@ -123,7 +125,7 @@ export function Navbar({ className }: NavbarProps) {
           </div>
 
           {/* Mobile menu button */}
-          <div className="flex items-center space-x-2 md:hidden">
+          <div className="flex items-center gap-x-2 md:hidden">
             <ModeToggle />
             <Button
               variant="ghost"
@@ -131,18 +133,19 @@ export function Navbar({ className }: NavbarProps) {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? (
-                <X className="h-6 w-6" />
+                <X className="size-6" />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="size-6" />
               )}
             </Button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
+        {/* Mobile Navigation - shown only on mobile screens */}
+
+        {isMobileMenuOpen && isMobile && (
           <div className="md:hidden">
-            <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
+            <div className="gap-y-1 px-2 pb-3 pt-2 sm:px-3">
               {navigation.map(item => (
                 <Link
                   key={item.name}
@@ -175,7 +178,7 @@ export function Navbar({ className }: NavbarProps) {
 
             <div className="border-t border-border pb-3 pt-4">
               {isAuthenticated ? (
-                <div className="space-y-1 px-2">
+                <div className="gap-y-1 px-2">
                   <div className="px-3 py-2">
                     <div className="text-base font-medium text-foreground">
                       {user?.firstName} {user?.lastName}
@@ -189,12 +192,12 @@ export function Navbar({ className }: NavbarProps) {
                     className="w-full justify-start"
                     onClick={handleLogout}
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
+                    <LogOut className="mr-2 size-4" />
                     Log out
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-1 px-2">
+                <div className="gap-y-1 px-2">
                   <Button
                     variant="ghost"
                     className="w-full justify-start"

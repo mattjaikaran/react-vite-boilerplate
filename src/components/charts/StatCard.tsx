@@ -58,9 +58,9 @@ export function StatCard({
   if (loading) {
     return (
       <Card className={cn('animate-pulse', className)}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader className="flex flex-row items-center justify-between gap-y-0 pb-2">
           <div className="h-4 w-24 rounded bg-muted" />
-          <div className="h-8 w-8 rounded bg-muted" />
+          <div className="size-8 rounded bg-muted" />
         </CardHeader>
         <CardContent>
           <div className="mb-2 h-8 w-20 rounded bg-muted" />
@@ -72,13 +72,13 @@ export function StatCard({
 
   return (
     <Card className={cn('transition-all hover:shadow-md', className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between gap-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
         {Icon && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-            <Icon className="h-4 w-4 text-primary" />
+          <div className="flex size-8 items-center justify-center rounded-md bg-primary/10">
+            <Icon className="size-4 text-primary" />
           </div>
         )}
       </CardHeader>
@@ -96,7 +96,7 @@ export function StatCard({
                 trendInfo.color
               )}
             >
-              <trendInfo.icon className="h-3 w-3" />
+              <trendInfo.icon className="size-3" />
               <span>
                 {trendInfo.prefix}
                 {Math.abs(trend!.value)}%

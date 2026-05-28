@@ -13,11 +13,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { createFileRoute } from '@tanstack/react-router';
 import { Bug, Lightbulb, MessageSquare, Star } from 'lucide-react';
 
+// eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/feedback')({
   component: FeedbackPage,
 });
 
-function FeedbackPage() {
+export function FeedbackPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: wire to API
@@ -47,8 +48,8 @@ function FeedbackPage() {
 
   return (
     <div className="page-container">
-      <div className="mx-auto max-w-4xl space-y-8">
-        <div className="space-y-4 text-center">
+      <div className="mx-auto max-w-4xl gap-y-8">
+        <div className="gap-y-4 text-center">
           <h1 className="text-4xl font-bold tracking-tight">Feedback</h1>
           <p className="text-xl text-muted-foreground">
             Help us improve by sharing your thoughts and suggestions
@@ -59,7 +60,7 @@ function FeedbackPage() {
           {feedbackTypes.map(type => (
             <Card key={type.value} className="text-center">
               <CardContent className="pt-6">
-                <type.icon className={`mx-auto mb-3 h-8 w-8 ${type.color}`} />
+                <type.icon className={`mx-auto mb-3 size-8 ${type.color}`} />
                 <h3 className="font-semibold">{type.label}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {type.value === 'bug' &&
@@ -81,19 +82,19 @@ function FeedbackPage() {
             <CardTitle>Share Your Feedback</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="gap-y-6">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
+                <div className="gap-y-2">
                   <Label htmlFor="name">Name (Optional)</Label>
                   <Input id="name" placeholder="Your name" />
                 </div>
-                <div className="space-y-2">
+                <div className="gap-y-2">
                   <Label htmlFor="email">Email (Optional)</Label>
                   <Input id="email" type="email" placeholder="your@email.com" />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="gap-y-2">
                 <Label htmlFor="type">Feedback Type</Label>
                 <Select>
                   <SelectTrigger>
@@ -102,8 +103,8 @@ function FeedbackPage() {
                   <SelectContent>
                     {feedbackTypes.map(type => (
                       <SelectItem key={type.value} value={type.value}>
-                        <div className="flex items-center space-x-2">
-                          <type.icon className={`h-4 w-4 ${type.color}`} />
+                        <div className="flex items-center gap-x-2">
+                          <type.icon className={`size-4 ${type.color}`} />
                           <span>{type.label}</span>
                         </div>
                       </SelectItem>
@@ -112,7 +113,7 @@ function FeedbackPage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className="gap-y-2">
                 <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
@@ -120,7 +121,7 @@ function FeedbackPage() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="gap-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
@@ -129,7 +130,7 @@ function FeedbackPage() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="gap-y-2">
                 <Label htmlFor="priority">Priority</Label>
                 <Select>
                   <SelectTrigger>
@@ -165,9 +166,9 @@ function FeedbackPage() {
             <CardTitle>Recent Feedback</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3 rounded-lg bg-muted/50 p-4">
-                <Lightbulb className="mt-0.5 h-5 w-5 text-yellow-500" />
+            <div className="gap-y-4">
+              <div className="flex items-start gap-x-3 rounded-lg bg-muted/50 p-4">
+                <Lightbulb className="mt-0.5 size-5 text-yellow-500" />
                 <div className="flex-1">
                   <p className="font-medium">Add dark mode toggle to navbar</p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -180,8 +181,8 @@ function FeedbackPage() {
                 </div>
               </div>
 
-              <div className="flex items-start space-x-3 rounded-lg bg-muted/50 p-4">
-                <Bug className="mt-0.5 h-5 w-5 text-red-500" />
+              <div className="flex items-start gap-x-3 rounded-lg bg-muted/50 p-4">
+                <Bug className="mt-0.5 size-5 text-red-500" />
                 <div className="flex-1">
                   <p className="font-medium">
                     Form validation not working on mobile
@@ -196,8 +197,8 @@ function FeedbackPage() {
                 </div>
               </div>
 
-              <div className="flex items-start space-x-3 rounded-lg bg-muted/50 p-4">
-                <Star className="mt-0.5 h-5 w-5 text-blue-500" />
+              <div className="flex items-start gap-x-3 rounded-lg bg-muted/50 p-4">
+                <Star className="mt-0.5 size-5 text-blue-500" />
                 <div className="flex-1">
                   <p className="font-medium">Improve loading states</p>
                   <p className="mt-1 text-sm text-muted-foreground">

@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
+// eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/faq')({
   component: FAQPage,
 });
@@ -63,20 +64,21 @@ const faqData: FAQItem[] = [
   },
 ];
 
-function FAQItemCard({ item }: { item: FAQItem }) {
+export function FAQItemCard({ item }: { item: FAQItem }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="border-b border-border">
       <button
+        type="button"
         className="flex w-full items-center justify-between py-6 text-left"
         onClick={() => setIsOpen(!isOpen)}
       >
         <h3 className="text-lg font-medium">{item.question}</h3>
         {isOpen ? (
-          <ChevronUp className="h-5 w-5 text-muted-foreground" />
+          <ChevronUp className="size-5 text-muted-foreground" />
         ) : (
-          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          <ChevronDown className="size-5 text-muted-foreground" />
         )}
       </button>
       {isOpen && (
@@ -88,7 +90,7 @@ function FAQItemCard({ item }: { item: FAQItem }) {
   );
 }
 
-function FAQPage() {
+export function FAQPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <div className="text-center">

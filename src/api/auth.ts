@@ -7,7 +7,7 @@ import type {
   RegisterCredentials,
   User,
 } from '@/types';
-import { normalizeAuthResponse } from '@/types/auth';
+import { normalizeAuthResponse, normalizeTokens, normalizeUser, toDjangoRegisterCredentials } from '@/types/auth';
 
 /**
  * Determine auth endpoint paths based on backend configuration
@@ -51,15 +51,11 @@ export const authApi = {
   register: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
     const paths = getAuthPaths();
 
+    // Use Django snake_case format for registration
+    const djangoCredentials = toDjangoRegisterCredentials(credentials);
     const response = await apiClient.post<AuthResponse | DjangoAuthResponse>(
       paths.register,
-      {
-        email: credentials.email,
-        password: credentials.password,
-        firstName: credentials.firstName,
-        lastName: credentials.lastName,
-        passwordConfirm: credentials.confirmPassword,
-      }
+      djangoCredentials
     );
     const data = handleApiResponse(response);
     return normalizeAuthResponse(data);
@@ -102,12 +98,14 @@ export const authApi = {
     const paths = getAuthPaths();
 
     const response = await apiClient.post<
-      { accessToken: string } | { token: string }
+      { accessToken: string } | { token: string; refresh: string }
     >(paths.refresh, { refresh: refreshToken });
     const data = handleApiResponse(response);
 
     if ('token' in data) {
-      return { accessToken: data.token };
+      // Normalize Django JWT format
+      const normalized = normalizeTokens({ token: data.token, refresh: data.refresh });
+      return { accessToken: normalized.accessToken };
     }
     return data;
   },
@@ -133,7 +131,12 @@ export const authApi = {
   getProfile: async (): Promise<User> => {
     const paths = getAuthPaths();
     const response = await apiClient.get<User>(paths.profile);
-    return handleApiResponse(response);
+    const data = handleApiResponse(response);
+    // Normalize if the response is in Django snake_case format
+    if ('first_name' in data) {
+      return normalizeUser(data as unknown as Parameters<typeof normalizeUser>[0]);
+    }
+    return data;
   },
 
   /**

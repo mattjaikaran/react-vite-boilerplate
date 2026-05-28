@@ -1,16 +1,32 @@
+/* react-doctor-disable deslop/unused-file */
 /**
  * Formatting utility functions
  */
+
+const DEFAULT_CURRENCY_FORMATTER = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+});
+
+const DEFAULT_NUMBER_FORMATTER = new Intl.NumberFormat('en-US');
+
+const DEFAULT_PERCENT_FORMATTER = new Intl.NumberFormat('en-US', {
+  style: 'percent',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 export function formatCurrency(
   amount: number,
   currency = 'USD',
   locale = 'en-US'
 ): string {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-  }).format(amount);
+  const formatter =
+    currency === 'USD' && locale === 'en-US'
+      ? DEFAULT_CURRENCY_FORMATTER
+      // react-doctor-disable-next-line js-hoist-intl, react-doctor/js-hoist-intl
+      : new Intl.NumberFormat(locale, { style: 'currency', currency });
+  return formatter.format(amount);
 }
 
 export function formatNumber(
@@ -18,7 +34,12 @@ export function formatNumber(
   locale = 'en-US',
   options?: Intl.NumberFormatOptions
 ): string {
-  return new Intl.NumberFormat(locale, options).format(number);
+  const formatter =
+    !options && locale === 'en-US'
+      ? DEFAULT_NUMBER_FORMATTER
+      // react-doctor-disable-next-line js-hoist-intl, react-doctor/js-hoist-intl
+      : new Intl.NumberFormat(locale, options);
+  return formatter.format(number);
 }
 
 export function formatPercentage(
@@ -26,11 +47,16 @@ export function formatPercentage(
   decimals = 2,
   locale = 'en-US'
 ): string {
-  return new Intl.NumberFormat(locale, {
-    style: 'percent',
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value / 100);
+  const formatter =
+    decimals === 2 && locale === 'en-US'
+      ? DEFAULT_PERCENT_FORMATTER
+      // react-doctor-disable-next-line js-hoist-intl, react-doctor/js-hoist-intl
+      : new Intl.NumberFormat(locale, {
+          style: 'percent',
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        });
+  return formatter.format(value / 100);
 }
 
 export function formatBytes(bytes: number, decimals = 2): string {

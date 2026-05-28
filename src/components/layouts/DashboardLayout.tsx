@@ -14,6 +14,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ModeToggle } from '@/components/ui/mode-toggle';
 import { useLogout } from '@/hooks';
+import {
+  useEnvironment,
+  useIsDjangoSPA,
+  useIsStandalone,
+  useViewportSize,
+} from '@/hooks/use-environment';
 import { useAuth } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from '@tanstack/react-router';
@@ -51,14 +57,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const { user } = useAuth();
   const { mutate: logout } = useLogout();
+  const env = useEnvironment();
+  const isDjangoSPA = useIsDjangoSPA();
+  const isStandalone = useIsStandalone();
+  const viewport = useViewportSize();
+  // Use environment info for responsive/conditional rendering
+  const showEnvBadge = env.isDevelopment && !isDjangoSPA && isStandalone;
+  const isNarrow = viewport.width < 768;
 
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          className="fixed inset-0 z-40 w-full cursor-default bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          onKeyDown={e => e.key === 'Escape' && setSidebarOpen(false)}
         />
       )}
 
@@ -66,18 +82,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 w-64 transform border-r bg-card transition-transform duration-200 ease-in-out lg:translate-x-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          isNarrow && 'w-full max-w-xs'
         )}
       >
         {/* Sidebar header */}
         <div className="flex h-16 items-center justify-between border-b px-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
               <span className="text-lg font-bold text-primary-foreground">
                 R
               </span>
             </div>
             <span className="font-semibold">React Vite</span>
+            {showEnvBadge && (
+              <span className="rounded bg-yellow-100 px-1 py-0.5 text-xs text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                dev
+              </span>
+            )}
           </Link>
           <Button
             variant="ghost"
@@ -85,7 +107,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             className="lg:hidden"
             onClick={() => setSidebarOpen(false)}
           >
-            <X className="h-5 w-5" />
+            <X className="size-5" />
           </Button>
         </div>
 
@@ -105,7 +127,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 )}
                 onClick={() => setSidebarOpen(false)}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="size-5" />
                 {item.label}
               </Link>
             );
@@ -125,7 +147,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               className="lg:hidden"
               onClick={() => setSidebarOpen(true)}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="size-5" />
             </Button>
 
             {/* Search or breadcrumbs could go here */}
@@ -137,21 +159,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Notifications */}
               <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-rose-500" />
+                <Bell className="size-5" />
+                <span className="absolute right-1 top-1 size-2 rounded-full bg-rose-500" />
               </Button>
 
               {/* User menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                      <User className="h-4 w-4 text-primary" />
+                    <div className="flex size-8 items-center justify-center rounded-full bg-primary/10">
+                      <User className="size-4 text-primary" />
                     </div>
                     <span className="hidden max-w-[100px] truncate sm:inline-block">
                       {user?.email || 'User'}
                     </span>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDown className="size-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -166,13 +188,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to={'/profile' as any} className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
+                      <User className="mr-2 size-4" />
                       Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to={'/settings' as any} className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
+                      <Settings className="mr-2 size-4" />
                       Settings
                     </Link>
                   </DropdownMenuItem>
@@ -181,7 +203,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     className="cursor-pointer text-rose-500"
                     onClick={() => logout()}
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
+                    <LogOut className="mr-2 size-4" />
                     Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>

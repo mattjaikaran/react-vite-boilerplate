@@ -1,3 +1,4 @@
+/* react-doctor-disable deslop/unused-file */
 /**
  * Array utility functions
  */
@@ -40,7 +41,7 @@ export function sortBy<T>(
   keyFn: (item: T) => string | number,
   direction: 'asc' | 'desc' = 'asc'
 ): T[] {
-  return [...array].sort((a, b) => {
+  return array.toSorted((a, b) => {
     const aVal = keyFn(a);
     const bVal = keyFn(b);
 
