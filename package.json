@@ -25,7 +25,11 @@
     "feature:remove": "./scripts/remove-feature.sh",
     "feature:ssr": "./scripts/setup-ssr.sh",
     "feature:rsc": "./scripts/setup-rsc.sh",
-    "doctor": "react-doctor ."
+    "doctor": "react-doctor .",
+    "check-conventions": "bun run scripts/check_conventions.ts",
+    "check-dependencies": "bun run scripts/check_dependencies.ts",
+    "gauntlet": "bun run format:check && bun run lint:strict && bun run type-check && bun run test && bun run check-conventions && bun run check-dependencies",
+    "gauntlet:quick": "bun run lint:strict && bun run type-check && bun run check-conventions && bun run check-dependencies"
   },
   "dependencies": {
     "@hookform/resolvers": "3.9.0",
