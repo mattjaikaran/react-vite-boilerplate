@@ -1,0 +1,53 @@
+# Dependencies
+
+Every `package.json` dependency (dependencies and devDependencies) must be
+listed here. Add a row when you add a dependency.
+
+| Package | Version |
+| --- | --- |
+| @hookform/resolvers | 3.9.0 |
+| @radix-ui/react-dropdown-menu | 2.1.1 |
+| @radix-ui/react-label | 2.1.0 |
+| @radix-ui/react-select | 2.1.1 |
+| @radix-ui/react-slot | 1.1.0 |
+| @tanstack/react-query | 5.56.2 |
+| @tanstack/react-query-devtools | 5.56.2 |
+| @tanstack/react-router | 1.58.3 |
+| @tanstack/react-table | 8.20.5 |
+| @tanstack/router-devtools | 1.58.3 |
+| @tanstack/router-plugin | 1.58.4 |
+| @testing-library/jest-dom | 6.5.0 |
+| @testing-library/react | 16.0.1 |
+| @testing-library/user-event | 14.5.2 |
+| @types/node | 24.7.0 |
+| @types/react | 19.0.0 |
+| @types/react-dom | 19.0.0 |
+| @typescript-eslint/eslint-plugin | 8.7.0 |
+| @typescript-eslint/parser | 8.7.0 |
+| @vitejs/plugin-react | 4.3.1 |
+| @vitest/coverage-v8 | 2.1.1 |
+| @vitest/ui | 2.1.1 |
+| autoprefixer | 10.4.20 |
+| axios | 1.7.7 |
+| class-variance-authority | 0.7.0 |
+| clsx | 2.1.1 |
+| eslint | 9.11.1 |
+| eslint-plugin-react-hooks | 5.1.0-rc.0 |
+| eslint-plugin-react-refresh | 0.4.12 |
+| jsdom | 25.0.1 |
+| lucide-react | 0.441.0 |
+| postcss | 8.4.47 |
+| prettier | 3.3.3 |
+| prettier-plugin-tailwindcss | 0.6.6 |
+| react | 19.2.3 |
+| react-doctor | 0.2.9 |
+| react-dom | 19.2.3 |
+| react-hook-form | 7.53.0 |
+| tailwind-merge | 2.5.2 |
+| tailwindcss | 3.4.12 |
+| tailwindcss-animate | 1.0.7 |
+| typescript | 5.6.2 |
+| vite | 5.4.8 |
+| vitest | 2.1.1 |
+| zod | 3.23.8 |
+| zustand | 4.5.5 |
