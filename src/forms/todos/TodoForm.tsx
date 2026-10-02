@@ -21,7 +21,6 @@ import { useCreateTodo, useUpdateTodo } from '@/hooks/use-todo';
 import type { CreateTodoRequest, Todo, UpdateTodoRequest } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Plus, X } from 'lucide-react';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -37,6 +36,7 @@ const todoSchema = z.object({
   priority: z.enum(['low', 'medium', 'high']),
   dueDate: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  tagInput: z.string(),
 });
 
 interface TodoFormProps {
@@ -46,8 +46,6 @@ interface TodoFormProps {
 }
 
 export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
-  const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState<string[]>(todo?.tags || []);
 
   const createTodoMutation = useCreateTodo();
   const updateTodoMutation = useUpdateTodo();
@@ -56,7 +54,7 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
   const isLoading =
     createTodoMutation.isPending || updateTodoMutation.isPending;
 
-  const form = useForm<CreateTodoRequest>({
+  const form = useForm<CreateTodoRequest & { tagInput: string }>({
     resolver: zodResolver(todoSchema),
     defaultValues: {
       title: todo?.title || '',
@@ -64,11 +62,14 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
       priority: todo?.priority || 'medium',
       dueDate: todo?.dueDate || '',
       tags: todo?.tags || [],
+      tagInput: '',
     },
   });
+  const tags = form.watch('tags') ?? [];
+  const tagInput = form.watch('tagInput');
 
-  const onSubmit = async (data: CreateTodoRequest) => {
-    const todoData = { ...data, tags };
+  const onSubmit = async (data: CreateTodoRequest & { tagInput: string }) => {
+    const { tagInput: _draft, ...todoData } = data;
 
     try {
       if (isEditing) {
@@ -87,13 +88,13 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput('');
+      form.setValue('tags', [...tags, tagInput.trim()], { shouldDirty: true });
+      form.setValue('tagInput', '');
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    form.setValue('tags', tags.filter(tag => tag !== tagToRemove), { shouldDirty: true });
   };
 
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
@@ -198,7 +199,7 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
               <Input
                 placeholder="Add a tag"
                 value={tagInput}
-                onChange={e => setTagInput(e.target.value)}
+                {...form.register('tagInput')}
                 onKeyDown={handleTagKeyDown}
               />
               <Button

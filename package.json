@@ -6,7 +6,7 @@
   "description": "Modern React Vite boilerplate with TypeScript, TanStack Router, and comprehensive tooling",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build && tsc -b",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
     "lint:strict": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
@@ -39,9 +39,9 @@
     "@radix-ui/react-slot": "1.1.0",
     "@tanstack/react-query": "5.56.2",
     "@tanstack/react-query-devtools": "5.56.2",
-    "@tanstack/react-router": "1.58.3",
+    "@tanstack/react-router": "1.169.2",
+    "@tanstack/react-router-devtools": "1.166.13",
     "@tanstack/react-table": "8.20.5",
-    "@tanstack/router-devtools": "1.58.3",
     "axios": "1.7.7",
     "class-variance-authority": "0.7.0",
     "clsx": "2.1.1",
@@ -54,7 +54,7 @@
     "zustand": "4.5.5"
   },
   "devDependencies": {
-    "@tanstack/router-plugin": "1.58.4",
+    "@tanstack/router-plugin": "1.167.34",
     "@testing-library/jest-dom": "6.5.0",
     "@testing-library/react": "16.0.1",
     "@testing-library/user-event": "14.5.2",

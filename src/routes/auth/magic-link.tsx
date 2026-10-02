@@ -1,20 +1,18 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { MagicLinkForm } from '@/forms/auth/MagicLinkForm';
-import { useAuth } from '@/lib/store';
-import { createFileRoute, Navigate } from '@tanstack/react-router';
+import { useStore } from '@/lib/store';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 
 // eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/auth/magic-link')({
+  beforeLoad: () => {
+    if (useStore.getState().isAuthenticated) throw redirect({ to: '/todos' });
+  },
   component: MagicLinkPage,
 });
 
 export function MagicLinkPage() {
-  const { isAuthenticated } = useAuth();
-
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    return <Navigate to="/todos" />;
-  }
+  const navigate = useNavigate();
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
@@ -25,12 +23,8 @@ export function MagicLinkPage() {
           </CardHeader>
           <CardContent>
             <MagicLinkForm
-              onSuccess={() => {
-                // Show success message - handled by form
-              }}
               onSwitchToLogin={() => {
-                // Navigate to login page
-                window.location.href = '/auth/login';
+                void navigate({ to: '/auth/login' });
               }}
             />
           </CardContent>

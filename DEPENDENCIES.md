@@ -12,10 +12,10 @@ listed here. Add a row when you add a dependency.
 | @radix-ui/react-slot | 1.1.0 |
 | @tanstack/react-query | 5.56.2 |
 | @tanstack/react-query-devtools | 5.56.2 |
-| @tanstack/react-router | 1.58.3 |
+| @tanstack/react-router | 1.169.2 |
+| @tanstack/react-router-devtools | 1.166.13 |
 | @tanstack/react-table | 8.20.5 |
-| @tanstack/router-devtools | 1.58.3 |
-| @tanstack/router-plugin | 1.58.4 |
+| @tanstack/router-plugin | 1.167.34 |
 | @testing-library/jest-dom | 6.5.0 |
 | @testing-library/react | 16.0.1 |
 | @testing-library/user-event | 14.5.2 |

@@ -295,9 +295,21 @@ VITE_APP_ENV=development
 VITE_APP_NAME=React Vite Boilerplate
 ```
 
-### Router Configuration
+### Router configuration
 
-The project uses TanStack Router with file-based routing. Routes are automatically generated from files in the `src/routes/` directory.
+Use TanStack Router's file-based routes in `src/routes/`. Keep settings tab
+components in `src/routes/settings/-components/`; the leading `-` excludes
+them from route discovery. Regenerate `src/routeTree.gen.ts` through Vite,
+not by editing it manually.
+
+Keep auth redirects in route guards and the root router subscription.
+The API client clears the auth store when refresh fails; it does not
+replace browser location. Login and registration hooks apply the API
+response to the store instead of submitting the credentials a second time.
+
+Use React Hook Form for both persisted tags and the tag draft. Keep the
+shared data table's controls in `DataTableControls.tsx`; its table renderer
+remains in `DataTable.tsx`.
 
 ### Theme Configuration
 

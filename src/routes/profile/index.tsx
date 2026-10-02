@@ -21,7 +21,7 @@ import { Calendar, Edit, Mail, MapPin, Settings } from 'lucide-react';
 
 const TODAY_FORMATTED = formatDate(new Date());
 
-export const Route = createFileRoute('/profile' as any)({
+export const Route = createFileRoute('/profile/')({
   component: ProfilePage,
 });
 
@@ -73,13 +73,13 @@ function ProfilePage() {
               {/* Actions */}
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" asChild>
-                  <Link to={'/settings' as any}>
+                  <Link to="/settings">
                     <Edit className="mr-2 size-4" />
                     Edit Profile
                   </Link>
                 </Button>
                 <Button variant="ghost" size="icon" asChild>
-                  <Link to={'/settings' as any}>
+                  <Link to="/settings">
                     <Settings className="size-4" />
                   </Link>
                 </Button>

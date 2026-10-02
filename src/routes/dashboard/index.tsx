@@ -24,7 +24,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
-export const Route = createFileRoute('/dashboard' as any)({
+export const Route = createFileRoute('/dashboard/')({
   component: DashboardPage,
 });
 

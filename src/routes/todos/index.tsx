@@ -11,14 +11,17 @@ import {
 } from '@/components/ui/select';
 import { useDebounce } from '@/hooks';
 import { useTodos } from '@/hooks/use-todo';
-import { useAuth } from '@/lib/store';
+import { useStore } from '@/lib/store';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Todo, TodoPriority } from '@/types';
-import { createFileRoute, Link, Navigate } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { CheckCircle2, Circle, Plus, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/todos/')({
+  beforeLoad: () => {
+    if (!useStore.getState().isAuthenticated) throw redirect({ to: '/auth/login' });
+  },
   component: TodosPage,
 });
 
@@ -29,7 +32,6 @@ const todoColumns: ColumnDef<Todo>[] = [
 ];
 
 function TodosPage() {
-  const { isAuthenticated } = useAuth();
   const { data: todos = [], isLoading } = useTodos();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -40,11 +42,6 @@ function TodosPage() {
     'all' | 'completed' | 'pending'
   >('all');
   const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
-
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/auth/login" />;
-  }
 
   // Filter todos based on search and filters
   const filteredTodos = todos.filter((todo: Todo) => {

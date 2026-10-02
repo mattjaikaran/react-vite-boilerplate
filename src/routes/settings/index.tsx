@@ -10,12 +10,12 @@ import { cn, formatDateTime } from '@/lib/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { Bell, Palette, Shield, User } from 'lucide-react';
 import { useState } from 'react';
-import { AppearanceTab } from './AppearanceTab';
-import { NotificationsTab, type NotificationsState } from './NotificationsTab';
-import { ProfileTab, type ProfileFormState } from './ProfileTab';
-import { SecurityTab, type PasswordFormState } from './SecurityTab';
+import { AppearanceTab } from './-components/AppearanceTab';
+import { NotificationsTab, type NotificationsState } from './-components/NotificationsTab';
+import { ProfileTab, type ProfileFormState } from './-components/ProfileTab';
+import { SecurityTab, type PasswordFormState } from './-components/SecurityTab';
 
-export const Route = createFileRoute('/settings' as any)({
+export const Route = createFileRoute('/settings/')({
   component: SettingsPage,
 });
 

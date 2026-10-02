@@ -146,7 +146,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
   },
 
   setTokens: (tokens: AuthTokens) => {
-    set({ tokens });
+    set({ tokens, isAuthenticated: true });
     localStorage.setItem(tokenKey, tokens.accessToken);
     localStorage.setItem(refreshTokenKey, tokens.refreshToken);
   },

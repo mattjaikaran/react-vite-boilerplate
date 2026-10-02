@@ -113,10 +113,10 @@ export interface FileRoutesByFullPath {
   '/auth/magic-link': typeof AuthMagicLinkRoute
   '/auth/register': typeof AuthRegisterRoute
   '/todos/create': typeof TodosCreateRoute
-  '/dashboard': typeof DashboardIndexRoute
-  '/profile': typeof ProfileIndexRoute
-  '/settings': typeof SettingsIndexRoute
-  '/todos': typeof TodosIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/profile/': typeof ProfileIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/todos/': typeof TodosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -167,10 +167,10 @@ export interface FileRouteTypes {
     | '/auth/magic-link'
     | '/auth/register'
     | '/todos/create'
-    | '/dashboard'
-    | '/profile'
-    | '/settings'
-    | '/todos'
+    | '/dashboard/'
+    | '/profile/'
+    | '/settings/'
+    | '/todos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -279,28 +279,28 @@ declare module '@tanstack/react-router' {
     '/todos/': {
       id: '/todos/'
       path: '/todos'
-      fullPath: '/todos'
+      fullPath: '/todos/'
       preLoaderRoute: typeof TodosIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/': {
       id: '/settings/'
       path: '/settings'
-      fullPath: '/settings'
+      fullPath: '/settings/'
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile/': {
       id: '/profile/'
       path: '/profile'
-      fullPath: '/profile'
+      fullPath: '/profile/'
       preLoaderRoute: typeof ProfileIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/dashboard'
-      fullPath: '/dashboard'
+      fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }

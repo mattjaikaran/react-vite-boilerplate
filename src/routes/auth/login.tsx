@@ -1,21 +1,19 @@
 import { AuthLayout } from '@/components/layouts/AuthLayout';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { LoginForm } from '@/forms/auth/LoginForm';
-import { useAuth } from '@/lib/store';
-import { createFileRoute, Navigate } from '@tanstack/react-router';
+import { useStore } from '@/lib/store';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 
 // eslint-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/auth/login')({
+  beforeLoad: () => {
+    if (useStore.getState().isAuthenticated) throw redirect({ to: '/todos' });
+  },
   component: LoginPage,
 });
 
 export function LoginPage() {
-  const { isAuthenticated } = useAuth();
-
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    return <Navigate to="/todos" />;
-  }
+  const navigate = useNavigate();
 
   return (
     <AuthLayout requireAuth={false}>
@@ -27,16 +25,12 @@ export function LoginPage() {
             </CardHeader>
             <CardContent>
               <LoginForm
-                onSuccess={() => {
-                  // Navigation is handled by the auth store
-                }}
+                onSuccess={() => { void navigate({ to: '/todos' }); }}
                 onSwitchToRegister={() => {
-                  // Navigate to register page
-                  window.location.href = '/auth/register';
+                  void navigate({ to: '/auth/register' });
                 }}
                 onSwitchToMagicLink={() => {
-                  // Navigate to magic link page
-                  window.location.href = '/auth/magic-link';
+                  void navigate({ to: '/auth/magic-link' });
                 }}
               />
             </CardContent>

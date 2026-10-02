@@ -1,4 +1,5 @@
 import { config } from '@/config';
+import { useStore } from '@/lib/store';
 
 const isDjangoSPA = () => config.env.mode === 'django-spa';
 import { getCSRFToken } from '@/lib/django-integration';
@@ -163,12 +164,7 @@ const createApiInstance = (): AxiosInstance => {
             return instance(originalRequest);
           }
         } catch (refreshError) {
-          // Refresh failed, clear tokens
-          localStorage.removeItem(config.auth.tokenKey);
-          localStorage.removeItem(config.auth.refreshTokenKey);
-          localStorage.removeItem('user');
-
-          window.location.href = '/auth/login';
+          useStore.getState().logout();
           return Promise.reject(refreshError);
         }
       }
