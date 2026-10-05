@@ -59,11 +59,11 @@ Plugin references: [Zod 4](https://heyapi.dev/docs/openapi/typescript/plugins/zo
 
 Producer provenance: `git@github.com:mattjaikaran/django-ninja-boilerplate.git`,
 base `main` commit `b95a40bd0d826550693b43395face1b46d93fc54`, with the authorized
-cookie contract committed separately as local backend commit `619422e` (not pushed).
-The frontend snapshot requires that cookie contract, not unmodified upstream main.
-In the owning backend checkout, retrieve it with
-`git fetch <frontend-root>/.runtime/backend main` and `git cherry-pick 619422e`;
-resolve overlaps with the independently owned backend changes.
+cookie contract published to the backend's `origin/main` as commit `619422e`.
+The frontend snapshot requires that cookie contract or a compatible successor.
+In the owning backend checkout, retrieve it with `git fetch origin main`.
+If integrating onto an independently modified branch, use `git cherry-pick 619422e`
+and resolve overlaps with the independently owned backend changes.
 
 From the backend checkout, export with
 `env -u CI DJANGO_SETTINGS_MODULE=api.settings.test ENVIRONMENT=development TASK_BACKEND=celery OTEL_ENABLED=False .venv/bin/python manage.py export_openapi --api api.urls.api --output <frontend-root>/backend/docs/openapi --format json --no-validate`;
