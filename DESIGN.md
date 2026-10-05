@@ -2,7 +2,7 @@
 
 ## Direction
 
-An editorial product studio: warm paper, dark ink, cobalt actions, and quiet mint surfaces. Use a strong type hierarchy and generous space rather than gradients, stock illustrations, or a wall of technology badges. The homepage preview is explicitly illustrative, not real customer activity.
+An editorial product studio: warm paper and black ink in light mode, a pure-black background with neutral-gray surfaces in dark mode, and monochrome actions in both. Quiet mint emphasis remains in light mode. Use a strong type hierarchy and generous space rather than gradients, stock illustrations, or a wall of technology badges. The homepage preview is explicitly illustrative, not real customer activity.
 
 ## Edit map
 
@@ -33,7 +33,7 @@ Reuse the Radix/shadcn primitives under `src/components/ui`. Keep one primary ac
 
 Preserve loading, empty, validation, error, and success states when adapting forms and data screens. Use real domain labels and content; do not invent testimonials, customer counts, or live metrics.
 
-The fresh-install theme is `system` and follows operating-system changes while the app is open. Appearance choices apply immediately and persist on this device; explicit light/dark choices override the OS. Notification switches save device-local preferences only; email/push delivery needs a backend integration.
+The fresh-install theme is `system` and follows operating-system changes while the app is open. The visible control is a direct dark/light toggle, not a three-option menu. Its first click switches away from the current resolved appearance and saves an explicit light/dark choice on this device; subsequent clicks alternate between those two modes. Explicit choices override the OS and survive reloads. The settings Appearance panel reuses the same toggle. Notification switches save device-local preferences only; email/push delivery needs a backend integration.
 
 ## Accessibility and responsive checks
 

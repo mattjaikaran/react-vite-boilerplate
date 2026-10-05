@@ -50,7 +50,7 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 - **Hot Module Replacement** - Instant feedback during development
 - **Oxlint & Oxfmt** - Native linting and formatting, with built-in React Hooks checks
 - **React Doctor** - React health diagnostics with blocking errors and telemetry disabled
-- **Editable design system** - Paper/ink/cobalt themes and a product-oriented starter; see [DESIGN.md](./DESIGN.md)
+- **Editable design system** - Paper/ink light mode, black/neutral dark mode, and a product-oriented starter; see [DESIGN.md](./DESIGN.md)
 - **Vitest 4** - Existing behavior and boundary tests
 - **Comprehensive Utils** - 100+ utility functions organized by category
 - **Type Safety** - Modular type definitions
@@ -323,7 +323,7 @@ self-service. No nonexistent change-password or server-action API is retained.
 
 ### Theme Configuration
 
-Dark mode uses the Zustand UI slice. Customize CSS-first tokens and utilities in `src/globals.css`; see `DESIGN.md`. There is no Tailwind JavaScript configuration.
+Dark mode uses the Zustand UI slice. Fresh installs follow the operating system until the user chooses an appearance with the dark/light toggle; explicit choices persist on this device. Dark mode uses a pure-black background and neutral-gray surfaces. Customize CSS-first tokens and utilities in `src/globals.css`; see `DESIGN.md`. There is no Tailwind JavaScript configuration.
 
 ## Testing
 
