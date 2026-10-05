@@ -13,7 +13,7 @@ Triggers: "why did this rule fire", "I disagree with this rule", "turn this rule
 2. Explain it before changing anything:
 
 ```bash
-bun run doctor -- rules explain react-doctor/no-array-index-as-key
+bun run react-doctor rules explain react-doctor/no-array-index-as-key
 ```
 
 3. Pick the narrowest control that matches the user's intent (see decision guide).
@@ -21,22 +21,22 @@ bun run doctor -- rules explain react-doctor/no-array-index-as-key
 5. Validate the change did what they wanted:
 
 ```bash
-bun run doctor -- --verbose --diff
+bun run doctor --verbose --scope changed
 ```
 
 ## Commands
 
 ```bash
-bun run doctor -- rules list                         # every rule + its effective severity
-bun run doctor -- rules list --configured            # only what your config changed
-bun run doctor -- rules list --category Performance   # filter by category
-bun run doctor -- rules explain <rule>               # why it matters + how to configure
-bun run doctor -- rules disable <rule>               # rule never runs
-bun run doctor -- rules enable <rule>                # turn back on at its recommended severity
-bun run doctor -- rules set <rule> warn              # off | warn | error
-bun run doctor -- rules category "React Native" off   # whole category
-bun run doctor -- rules ignore-tag design            # skip a rule family (design, test-noise, …)
-bun run doctor -- rules unignore-tag design
+bun run react-doctor rules list                        # every rule + its effective severity
+bun run react-doctor rules list --configured           # only what your config changed
+bun run react-doctor rules list --category Performance # filter by category
+bun run react-doctor rules explain <rule>              # why it matters + how to configure
+bun run react-doctor rules disable <rule>              # rule never runs
+bun run react-doctor rules enable <rule>               # turn back on at its recommended severity
+bun run react-doctor rules set <rule> warn             # off | warn | error
+bun run react-doctor rules category "React Native" off # whole category
+bun run react-doctor rules ignore-tag design           # skip a rule family (design, test-noise, …)
+bun run react-doctor rules unignore-tag design
 ```
 
 Rule references accept the full key (`react-doctor/no-danger`), the bare id (`no-danger`), or a legacy key (`react/no-danger`).
