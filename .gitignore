@@ -38,9 +38,13 @@ coverage
 # OS
 Thumbs.db
 
-# Docker
-.dockerignore
 
 # Misc
 *.tgz
 *.tar.gz
+
+# Local agent permissions
+.claude/settings.local.json
+
+# Local backend checkout and development runtime artifacts
+.runtime/

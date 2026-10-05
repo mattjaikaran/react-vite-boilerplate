@@ -6,17 +6,17 @@ An editorial product studio: warm paper, dark ink, cobalt actions, and quiet min
 
 ## Edit map
 
-| Change                                                                 | Source                                               |
-| ---------------------------------------------------------------------- | ---------------------------------------------------- |
-| Palette, light/dark surfaces, radius, body font, focus, reduced motion | `src/globals.css`                                    |
-| Token-to-Tailwind mapping and font families                            | `tailwind.config.js`                                 |
-| Hero copy, actions, preview, milestone content                         | `src/components/shared/Hero.tsx`                     |
-| Homepage sections and feature links                                    | `src/routes/index.tsx`                               |
-| Brand and navigation                                                   | `src/components/nav/Navbar.tsx`, `Footer.tsx`        |
-| Shared buttons and variants                                            | `src/components/ui/button.tsx`, `button-variants.ts` |
-| Authenticated shell                                                    | `src/components/layouts/DashboardLayout.tsx`         |
+| Change                                                                 | Source                                                 |
+| ---------------------------------------------------------------------- | ------------------------------------------------------ |
+| Palette, light/dark surfaces, radius, body font, focus, reduced motion | `src/globals.css`                                      |
+| Token-to-Tailwind mapping, font families, animations, dark variant     | `src/globals.css` (`@theme inline`, `@custom-variant`) |
+| Hero copy, actions, preview, milestone content                         | `src/components/shared/Hero.tsx`                       |
+| Homepage sections and feature links                                    | `src/routes/index.tsx`                                 |
+| Brand and navigation                                                   | `src/components/nav/Navbar.tsx`, `Footer.tsx`          |
+| Shared buttons and variants                                            | `src/components/ui/button.tsx`, `button-variants.ts`   |
+| Authenticated shell                                                    | `src/components/layouts/DashboardLayout.tsx`           |
 
-Change both `:root` and `.dark` when editing colors. HSL variables contain space-separated channels without `hsl()`, compatible with Tailwind opacity modifiers. Use semantic utilities (`bg-card`, `text-muted-foreground`, `border-border`) in app components, not duplicated hex colors. Primary means action; accent means quiet emphasis; destructive means danger.
+Change both `:root` and `.dark` when editing colors. HSL variables contain space-separated channels without `hsl()`; Tailwind 4's `@theme inline` maps them to semantic `--color-*` tokens with `hsl(var(--...))`, preserving opacity modifiers. The CSS-first theme also maps radii, the existing local/system sans stack, and accordion animations; `@custom-variant dark` follows `.dark` descendants. Use semantic utilities (`bg-card`, `text-muted-foreground`, `border-border`) in app components, not duplicated hex colors. Primary means action; accent means quiet emphasis; destructive means danger. Tailwind is integrated through `@tailwindcss/vite`, not a JavaScript Tailwind or PostCSS configuration.
 
 ## Typography and spacing
 
@@ -45,10 +45,10 @@ The fresh-install theme is `system` and follows operating-system changes while t
 
 ## Tooling
 
-Run `bun run format`, `bun run lint:strict`, `bun run build`, and `bun run doctor` after changes. Oxfmt and Oxlint use `.oxfmtrc.json` and `.oxlintrc.json`; React Doctor uses `doctor.config.json`. Node 20.19+ or 22.13+ is required (22 LTS recommended), alongside Bun 1.3+.
+Use the local commands and verification policy in `AGENTS.md`. Oxfmt and Oxlint use `.oxfmtrc.json` and `.oxlintrc.json`; React Doctor uses `doctor.config.json` and the repository-pinned `bun run doctor`. Toolchain versions and Node/Bun requirements come from `package.json` and `bun.lock`, not duplicated version promises here.
 
-The lint migration retains React Hooks checks. React Compiler-specific rules are not enabled because this template does not use React Compiler; enabling a compiler is a separate adoption task. Doctor warnings remain visible and errors block. Required TanStack `Route` registrations have only a narrowly adjacent component-export exception; the router plugin owns route HMR. Auth forms and legal pages retain independent ownership despite intentional JSX similarities.
+The lint migration retains React Hooks checks. React Compiler-specific rules are not enabled because this template does not use React Compiler; enabling a compiler is a separate adoption task. Doctor warnings remain visible and errors block; there are no blanket unused-file suppressions or source-directory exclusions. Required TanStack `Route` registrations have only a narrowly adjacent component-export exception; the router plugin owns route HMR. Auth forms and legal pages retain independent ownership despite intentional JSX similarities.
 
-Public build configuration uses an explicit allowlist of statically referenced settings rather than serializing `import.meta.env`. `VITE_AUTH_STORAGE_KEY`, `VITE_AUTH_REFRESH_STORAGE_KEY`, `VITE_AUTH_SESSION_SECONDS`, and `VITE_DJANGO_CSRF_COOKIE_NAME` are public storage names, a session duration, and a cookie name—not credentials. Never place credentials in `VITE_*` variables. Browser-readable bearer tokens remain exposed to XSS; production HttpOnly sessions require a coordinated backend and CSRF migration.
+Public build configuration uses an explicit allowlist of statically referenced settings rather than serializing `import.meta.env`. Browser-exposed storage names, durations, and cookie names are configuration, not credentials. Never place credentials in `VITE_*` variables or runtime browser configuration. Authentication and CSRF must match the authoritative backend contract; a visual theme change does not establish a working cookie-session integration.
 
-Existing deployments must rename `VITE_AUTH_TOKEN_KEY` to `VITE_AUTH_STORAGE_KEY`, `VITE_AUTH_REFRESH_TOKEN_KEY` to `VITE_AUTH_REFRESH_STORAGE_KEY`, `VITE_AUTH_TOKEN_EXPIRY` to `VITE_AUTH_SESSION_SECONDS`, and `VITE_DJANGO_CSRF_TOKEN_NAME` to `VITE_DJANGO_CSRF_COOKIE_NAME`, including runtime `window.__APP_CONFIG__` settings. The default stored names (`access_token`, `refresh_token`, `csrftoken`) and duration (`3600`) are unchanged, so this configuration migration does not invalidate stored sessions. Explicit `false` feature flags now correctly override enabled defaults.
+This design system is repository-only. Keep application tokens and component rules here; do not copy them into global agent skills or use another repository's design document as authority.

@@ -1,5 +1,5 @@
 {
-  "rules": {
-    "deslop/unused-file": "off"
+  "ignore": {
+    "files": [".runtime/**"]
   }
 }
