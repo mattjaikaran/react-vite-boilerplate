@@ -3,6 +3,7 @@
  * This config is used when building for SSR
  */
 
+import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
@@ -16,6 +17,7 @@ export default defineConfig({
       autoCodeSplitting: true,
     }),
     react(),
+    tailwindcss(),
   ],
   resolve: {
     alias: {
@@ -28,7 +30,6 @@ export default defineConfig({
       '@/api': path.resolve(import.meta.dirname, './src/api'),
       '@/types': path.resolve(import.meta.dirname, './src/types'),
       '@/config': path.resolve(import.meta.dirname, './src/config'),
-      '@/mock-api': path.resolve(import.meta.dirname, './src/mock-api'),
     },
   },
   build: {

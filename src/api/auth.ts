@@ -1,212 +1,109 @@
-import { apiClient, handleApiResponse } from '@/lib/api';
-import type {
-  AuthResponse,
-  DjangoAuthResponse,
-  LoginCredentials,
-  MagicLinkRequest,
-  RegisterCredentials,
-  User,
-} from '@/types';
-import {
-  normalizeAuthResponse,
-  normalizeTokens,
-  normalizeUser,
-  toDjangoRegisterCredentials,
-} from '@/types/auth';
+import { client } from '@/api/generated/client.gen';
+import { createClient } from '@/api/generated/client';
+import { authCsrf, authRefresh } from '@/api/generated/sdk.gen';
+import { config } from '@/config';
 
-/**
- * Determine auth endpoint paths based on backend configuration
- * Django Ninja JWT typically uses /token/pair for login
- */
-const getAuthPaths = () => {
-  return {
-    login: '/auth/login',
-    register: '/auth/signup',
-    refresh: '/auth/token/refresh',
-    profile: '/auth/me',
-    magicLink: '/auth/passwordless/login/request',
-    verifyMagicLink: '/auth/passwordless/login/verify',
-    logout: '/auth/logout',
-    changePassword: '/auth/change-password',
-    requestPasswordReset: '/otp/password-reset/request',
-    resetPassword: '/otp/password-reset/confirm',
-  };
+const nativeFetch: typeof fetch = (input, init) => {
+  const callerSignal =
+    init?.signal ?? (input instanceof Request ? input.signal : undefined);
+  const timeout = AbortSignal.timeout(config.api.timeout);
+  return globalThis.fetch(input, {
+    ...init,
+    credentials: 'include',
+    signal: callerSignal ? AbortSignal.any([callerSignal, timeout]) : timeout,
+  });
 };
 
-export const authApi = {
-  /**
-   * Login with email and password
-   * Handles both standard and Django Ninja JWT formats
-   */
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const paths = getAuthPaths();
+/** Configure the generated client once, before session bootstrap or rendering. */
+export function configureCookieAuth(onSessionExpired: () => void) {
+  const rawClient = createClient({
+    baseUrl: config.api.baseUrl,
+    credentials: 'include',
+    fetch: nativeFetch,
+  });
+  const protectedRequests = new WeakSet<Request>();
+  let csrf: Promise<string> | undefined;
+  let refresh: Promise<boolean> | undefined;
+  let sessionRevision = 0;
 
-    const response = await apiClient.post<AuthResponse | DjangoAuthResponse>(
-      paths.login,
-      { email: credentials.email, password: credentials.password }
-    );
-    const data = handleApiResponse(response);
-    return normalizeAuthResponse(data);
-  },
-
-  /**
-   * Register new user
-   * Converts to Django snake_case format when needed
-   */
-  register: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
-    const paths = getAuthPaths();
-
-    // Use Django snake_case format for registration
-    const djangoCredentials = toDjangoRegisterCredentials(credentials);
-    const response = await apiClient.post<AuthResponse | DjangoAuthResponse>(
-      paths.register,
-      djangoCredentials
-    );
-    const data = handleApiResponse(response);
-    return normalizeAuthResponse(data);
-  },
-
-  /**
-   * Send magic link for passwordless login
-   */
-  magicLink: async (
-    request: MagicLinkRequest
-  ): Promise<{ message: string }> => {
-    const paths = getAuthPaths();
-    const response = await apiClient.post<{ message: string }>(
-      paths.magicLink,
-      request
-    );
-    return handleApiResponse(response);
-  },
-
-  /**
-   * Verify magic link token
-   */
-  verifyMagicLink: async (token: string): Promise<AuthResponse> => {
-    const paths = getAuthPaths();
-    const response = await apiClient.post<AuthResponse | DjangoAuthResponse>(
-      paths.verifyMagicLink,
-      { token }
-    );
-    const data = handleApiResponse(response);
-    return normalizeAuthResponse(data);
-  },
-
-  /**
-   * Refresh access token
-   * Handles both standard and Django Ninja JWT formats
-   */
-  refreshToken: async (
-    refreshToken: string
-  ): Promise<{ accessToken: string }> => {
-    const paths = getAuthPaths();
-
-    const response = await apiClient.post<
-      { accessToken: string } | { token: string; refresh: string }
-    >(paths.refresh, { refresh: refreshToken });
-    const data = handleApiResponse(response);
-
-    if ('token' in data) {
-      // Normalize Django JWT format
-      const normalized = normalizeTokens({
-        token: data.token,
-        refresh: data.refresh,
+  const csrfToken = () => {
+    csrf ??= authCsrf({ client: rawClient, throwOnError: true })
+      .then(({ data }) => data.csrfToken)
+      .catch(error => {
+        csrf = undefined;
+        throw error;
       });
-      return { accessToken: normalized.accessToken };
+    return csrf;
+  };
+
+  const prepare = async (request: Request) => {
+    if (!['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(request.method)) {
+      request.headers.set('X-CSRFToken', await csrfToken());
     }
-    return data;
-  },
+    return request;
+  };
 
-  /**
-   * Logout and invalidate tokens
-   */
-  logout: async (): Promise<{ message: string }> => {
-    const paths = getAuthPaths();
-    try {
-      const response = await apiClient.post<{ message: string }>(paths.logout);
-      return handleApiResponse(response);
-    } catch {
-      // Many Django setups don't have a logout endpoint - just return success
-      return { message: 'Logged out successfully' };
-    }
-  },
-
-  /**
-   * Get current user profile
-   * Normalizes Django snake_case response to camelCase
-   */
-  getProfile: async (): Promise<User> => {
-    const paths = getAuthPaths();
-    const response = await apiClient.get<User>(paths.profile);
-    const data = handleApiResponse(response);
-    // Normalize if the response is in Django snake_case format
-    if ('first_name' in data) {
-      return normalizeUser(
-        data as unknown as Parameters<typeof normalizeUser>[0]
-      );
-    }
-    return data;
-  },
-
-  /**
-   * Update user profile
-   */
-  updateProfile: async (updates: Partial<User>): Promise<User> => {
-    const paths = getAuthPaths();
-
-    const response = await apiClient.patch<User>(paths.profile, {
-      firstName: updates.firstName,
-      lastName: updates.lastName,
-      email: updates.email,
+  const refreshSession = async () => {
+    const result = await authRefresh({
+      client: rawClient,
+      headers: { 'X-CSRFToken': await csrfToken() },
     });
-    return handleApiResponse(response);
-  },
+    if (result.response?.status === 401) return false;
+    if (result.error !== undefined) throw result.error;
+    csrf = undefined;
+    sessionRevision += 1;
+    return true;
+  };
 
-  /**
-   * Change password
-   */
-  changePassword: async (data: {
-    currentPassword: string;
-    newPassword: string;
-  }): Promise<{ message: string }> => {
-    const paths = getAuthPaths();
+  const cookieFetch: typeof fetch = async (input, init) => {
+    const isProtected =
+      input instanceof Request && protectedRequests.has(input);
+    const request = new Request(input, { ...init, credentials: 'include' });
+    const revision = sessionRevision;
+    // Only streamed bodies need a clone; bodyless requests remain reusable.
+    const retry = isProtected
+      ? request.body
+        ? request.clone()
+        : request
+      : undefined;
+    const response = await nativeFetch(await prepare(request));
+    if (
+      response.ok &&
+      request.method === 'POST' &&
+      new URL(request.url).pathname.startsWith('/api/auth/')
+    ) {
+      // Login rotates Django's CSRF secret; the next mutation bootstraps it again.
+      csrf = undefined;
+    }
+    if (response.status !== 401 || !retry) return response;
 
-    const response = await apiClient.post<{ message: string }>(
-      paths.changePassword,
-      {
-        oldPassword: data.currentPassword,
-        newPassword: data.newPassword,
+    if (revision === sessionRevision) {
+      refresh ??= refreshSession().finally(() => {
+        refresh = undefined;
+      });
+      if (!(await refresh)) {
+        onSessionExpired();
+        return response;
       }
-    );
-    return handleApiResponse(response);
-  },
+    }
+    const retried = await nativeFetch(await prepare(retry));
+    if (retried.status === 401) onSessionExpired();
+    return retried;
+  };
 
-  /**
-   * Request password reset email
-   */
-  requestPasswordReset: async (email: string): Promise<{ message: string }> => {
-    const paths = getAuthPaths();
-    const response = await apiClient.post<{ message: string }>(
-      paths.requestPasswordReset,
-      { email }
-    );
-    return handleApiResponse(response);
-  },
-
-  /**
-   * Reset password with token
-   */
-  resetPassword: async (data: {
-    token: string;
-    newPassword: string;
-  }): Promise<{ message: string }> => {
-    const paths = getAuthPaths();
-
-    const response = await apiClient.post<{ message: string }>(
-      paths.resetPassword,
-      { token: data.token, newPassword: data.newPassword }
-    );
-    return handleApiResponse(response);
-  },
-};
+  client.setConfig({
+    baseUrl: config.api.baseUrl,
+    credentials: 'include',
+    fetch: cookieFetch,
+  });
+  client.interceptors.request.use((request, options) => {
+    if (
+      options.security?.some(
+        security => security.in === 'cookie' && security.name === 'access_token'
+      )
+    ) {
+      protectedRequests.add(request);
+    }
+    return request;
+  });
+}

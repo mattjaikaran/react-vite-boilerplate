@@ -4,23 +4,26 @@
  */
 
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
-import { useChangePassword, useLocalStorage, useUpdateProfile } from '@/hooks';
-import { useAuth } from '@/lib/store';
+import { useLocalStorage } from '@/hooks';
+import { useAuth, useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { Bell, Palette, Shield, User } from 'lucide-react';
-import { useState } from 'react';
 import { AppearanceTab } from './-components/AppearanceTab';
 import {
   NotificationsTab,
   type NotificationsState,
 } from './-components/NotificationsTab';
-import { ProfileTab, type ProfileFormState } from './-components/ProfileTab';
-import { SecurityTab, type PasswordFormState } from './-components/SecurityTab';
+import { ProfileTab } from './-components/ProfileTab';
+import { SecurityTab } from './-components/SecurityTab';
 
 // TanStack Router requires the named Route registration in this file.
 // react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/settings/')({
+  beforeLoad: () => {
+    if (!useStore.getState().isAuthenticated)
+      throw redirect({ to: '/auth/login' });
+  },
   component: SettingsPage,
 });
 
@@ -39,20 +42,6 @@ function SettingsPage() {
     'profile'
   );
   const { user } = useAuth();
-  const updateProfile = useUpdateProfile();
-  const changePassword = useChangePassword();
-
-  const [profileForm, setProfileForm] = useState<ProfileFormState>({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-  });
-
-  const [passwordForm, setPasswordForm] = useState<PasswordFormState>({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
 
   const [notifications, setNotifications] = useLocalStorage<NotificationsState>(
     'notification-preferences',
@@ -63,20 +52,6 @@ function SettingsPage() {
       taskReminders: true,
     }
   );
-
-  const handleProfileSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfile.mutate(profileForm);
-  };
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) return;
-    changePassword.mutate({
-      currentPassword: passwordForm.currentPassword,
-      newPassword: passwordForm.newPassword,
-    });
-  };
 
   return (
     <DashboardLayout>
@@ -111,28 +86,14 @@ function SettingsPage() {
           </nav>
 
           <div className="max-w-2xl flex-1">
-            {activeTab === 'profile' && (
-              <ProfileTab
-                form={profileForm}
-                setForm={setProfileForm}
-                onSubmit={handleProfileSubmit}
-                isPending={updateProfile.isPending}
-              />
-            )}
+            {activeTab === 'profile' && <ProfileTab user={user} />}
             {activeTab === 'notifications' && (
               <NotificationsTab
                 notifications={notifications}
                 setNotifications={setNotifications}
               />
             )}
-            {activeTab === 'security' && (
-              <SecurityTab
-                form={passwordForm}
-                setForm={setPasswordForm}
-                onSubmit={handlePasswordSubmit}
-                isPending={changePassword.isPending}
-              />
-            )}
+            {activeTab === 'security' && <SecurityTab />}
             {activeTab === 'appearance' && <AppearanceTab />}
           </div>
         </div>

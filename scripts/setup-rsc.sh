@@ -18,7 +18,6 @@ mkdir -p src/lib/rsc
 # Copy RSC files
 echo "📁 Copying RSC files..."
 cp src/optional/rsc/index.ts src/lib/rsc/index.ts
-cp src/optional/rsc/server-actions.ts src/lib/rsc/server-actions.ts
 echo "   ✓ Copied RSC utilities to src/lib/rsc/"
 
 echo ""

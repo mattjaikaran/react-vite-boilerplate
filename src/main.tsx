@@ -1,3 +1,4 @@
+import { configureCookieAuth } from '@/api/auth';
 import { AppProviders } from '@/components/providers';
 import { initializeStore, useStore } from '@/lib/store';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
@@ -13,18 +14,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// Initialize the store
-initializeStore();
+// Cookie transport is configured before any generated SDK request.
+configureCookieAuth(() => useStore.getState().clearSession());
+const sessionReady = initializeStore();
 useStore.subscribe((state, previous) => {
   if (!state.isAuthenticated && previous.isAuthenticated) {
     void router.navigate({ to: '/auth/login' });
   }
 });
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AppProviders>
-      <RouterProvider router={router} />
-    </AppProviders>
-  </React.StrictMode>
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+root.render(
+  <output className="flex min-h-screen items-center justify-center">
+    Loading session…
+  </output>
 );
+
+void sessionReady.then(() => {
+  root.render(
+    <React.StrictMode>
+      <AppProviders>
+        <RouterProvider router={router} />
+      </AppProviders>
+    </React.StrictMode>
+  );
+});

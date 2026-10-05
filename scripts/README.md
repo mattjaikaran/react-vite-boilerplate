@@ -130,8 +130,7 @@ Key settings for monorepo:
 
 ```env
 VITE_MODE=django-spa
-VITE_API_BASE_URL=http://localhost:8000/api/v1
-VITE_ENABLE_MOCK_API=false
+VITE_API_BASE_URL=http://localhost:8000
 ```
 
 ### Building for Production
@@ -250,7 +249,6 @@ Dependencies installed:
 When enabled, adds:
 
 - `src/lib/rsc/index.ts` - RSC utilities
-- `src/lib/rsc/server-actions.ts` - Server action patterns
 
 Utilities included:
 
@@ -258,6 +256,10 @@ Utilities included:
 - `serverOnly()` / `clientOnly()` - Runtime guards
 - `cache()` - Memoization for async functions
 - `preload()` - Data prefetching helper
+
+Use the generated SDK directly for real API operations. Vite has no server-action
+runtime; the old handwritten API action wrappers are removed. A server framework
+must supply its own request-cookie and response-cookie boundary.
 
 ## Creating New Feature Scripts
 

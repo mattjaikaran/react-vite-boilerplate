@@ -17,21 +17,21 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 ### Core Technologies
 
 - **React 19** - Latest React with concurrent features
-- **TypeScript** - Full type safety and excellent developer experience
-- **Vite** - Lightning-fast build tool and development server
+- **TypeScript 6** - Static type checking
+- **Vite 7** - Build tool and development server
 - **Bun** - Fast JavaScript runtime and package manager
 
 ### Routing & State Management
 
 - **TanStack Router** - Type-safe routing with automatic code splitting
-- **Zustand** - Lightweight state management with slice pattern
+- **Zustand 5** - Frontend-local state with stable shallow selectors
 - **TanStack Query** - Server state management and caching
 - **React Hook Form** - Performant forms with easy validation
-- **Zod** - TypeScript-first schema validation
+- **Zod 4** - Generated API schemas and frontend-only refinements
 
 ### UI & Styling
 
-- **Tailwind CSS** - Utility-first CSS framework
+- **Tailwind CSS 4** - CSS-first utility framework
 - **Shadcn/ui** - Accessible component library
 - **Dark Mode** - Built-in theme switching with system preference
 - **Responsive Design** - Mobile-first approach
@@ -41,7 +41,7 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 
 - **Email/Password Authentication** - Traditional login system
 - **Magic Link Authentication** - Passwordless login option
-- **JWT Token Management** - Automatic token refresh
+- **Cookie Authentication** - HttpOnly credentials, CSRF protection, one centralized refresh/retry
 - **Protected Routes** - Route-level authentication guards
 - **Django Integration** - Works with Django's authentication system
 
@@ -51,7 +51,7 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 - **Oxlint & Oxfmt** - Native linting and formatting, with built-in React Hooks checks
 - **React Doctor** - React health diagnostics with blocking errors and telemetry disabled
 - **Editable design system** - Paper/ink/cobalt themes and a product-oriented starter; see [DESIGN.md](./DESIGN.md)
-- **Vitest** - Fast unit testing framework
+- **Vitest 4** - Existing behavior and boundary tests
 - **Comprehensive Utils** - 100+ utility functions organized by category
 - **Type Safety** - Modular type definitions
 - **Docker Support** - Containerized development and deployment
@@ -84,9 +84,8 @@ src/
 │   ├── store/         # Zustand store and slices
 │   └── utils/         # Utility functions
 ├── routes/             # TanStack Router routes
-├── api/                # API layer and services
-├── types/              # TypeScript type definitions
-├── mock-api/           # Mock API for development
+├── api/                # Cookie transport and generated SDK/Zod/Query helpers
+├── types/              # Frontend-only type definitions
 └── test/               # Test utilities and setup
 ```
 
@@ -105,16 +104,16 @@ This boilerplate is designed to work seamlessly with [Django Ninja](https://djan
 
 ### Features
 
-- **Django Ninja API Types** - Type definitions matching Django Ninja's response format
+- **Generated Django Ninja Contracts** - SDK, schemas, and query helpers from the producer export
 - **CSRF Token Handling** - Automatic CSRF token management for Django
 - **Server-side Pagination** - DataTable supports Django's pagination format
-- **Authentication** - Works with Django's JWT authentication
+- **Authentication** - HttpOnly access/refresh cookies; no browser-stored bearer tokens
 
 ### Setup
 
 ```bash
 # Set your Django API URL
-VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_API_BASE_URL=http://localhost:8000
 
 # Enable Django SPA mode (optional)
 VITE_MODE=django-spa
@@ -124,24 +123,28 @@ VITE_MODE=django-spa
 
 ```tsx
 import { DataTable } from '@/components/shared/DataTable';
-import { useTodos } from '@/hooks';
+import { todoListTodosOptions } from '@/api/generated/@tanstack/react-query.gen';
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 
 function TodoList() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const { data, isLoading } = useTodos({ page, page_size: pageSize });
+  const { data, isPending } = useQuery(
+    todoListTodosOptions({ query: { page, page_size: pageSize } })
+  );
 
   return (
     <DataTable
       columns={columns}
-      data={data?.data ?? []}
-      isLoading={isLoading}
+      data={data?.results ?? []}
+      isLoading={isPending}
       serverPagination={{
         page,
         pageSize,
-        total: data?.pagination.total ?? 0,
-        totalPages: data?.pagination.totalPages ?? 0,
+        total: data?.count ?? 0,
+        totalPages: Math.ceil((data?.count ?? 0) / pageSize),
       }}
       onPaginationChange={(newPage, newSize) => {
         setPage(newPage);
@@ -288,14 +291,12 @@ bun run docker:run   # Run Docker container
 Copy `env.example` to `.env` and configure:
 
 ```env
-# API Configuration
-VITE_API_BASE_URL=http://localhost:8000/api
+# API origin only; generated URLs already include /api
+VITE_API_BASE_URL=http://localhost:8000
 VITE_API_TIMEOUT=10000
 
-# Authentication
-# Public storage key names, not token values
-VITE_AUTH_STORAGE_KEY=access_token
-VITE_AUTH_REFRESH_STORAGE_KEY=refresh_token
+# Cookie authentication; no token-storage configuration
+VITE_ENABLE_MAGIC_LINK=true
 
 # Environment
 VITE_APP_ENV=development
@@ -310,17 +311,19 @@ them from route discovery. Regenerate `src/routeTree.gen.ts` through Vite,
 not by editing it manually.
 
 Keep auth redirects in route guards and the root router subscription.
-The API client clears the auth store when refresh fails; it does not
-replace browser location. Login and registration hooks apply the API
-response to the store instead of submitting the credentials a second time.
+Configure the generated client before session bootstrap. Login consumes the
+generated mutation; signup creates the account, then logs in explicitly.
+Only user/session state stays in memory. Browser storage persists UI preferences,
+never credentials or server data.
 
-Use React Hook Form for both persisted tags and the tag draft. Keep the
-shared data table's controls in `DataTableControls.tsx`; its table renderer
-remains in `DataTable.tsx`.
+Todo forms use the generated create schema. The backend has no tags or due-date
+fields; those unsupported controls are removed. Self-profile details are
+read-only because the backend's user-update route is staff administration, not
+self-service. No nonexistent change-password or server-action API is retained.
 
 ### Theme Configuration
 
-Dark mode is configured through the theme provider. Customize colors in `tailwind.config.js` and `src/globals.css`.
+Dark mode uses the Zustand UI slice. Customize CSS-first tokens and utilities in `src/globals.css`; see `DESIGN.md`. There is no Tailwind JavaScript configuration.
 
 ## Testing
 
@@ -346,8 +349,12 @@ bun run test:coverage
 ### Development
 
 ```bash
-docker-compose up -d
+docker compose --profile dev up --build app-dev
 ```
+
+Development runs as the Bun user at http://localhost:3001 (container port 3000).
+Dependencies come from the frozen `bun.lock`; recreate the `node_modules` volume
+after dependency changes (`docker compose down -v`, which removes project volumes).
 
 ### Production
 
@@ -356,38 +363,69 @@ docker-compose up -d
 docker build -t react-vite-boilerplate .
 
 # Run production container
-docker run -p 3000:3000 react-vite-boilerplate
+docker run --read-only --tmpfs /tmp:uid=101,gid=101,mode=1770 --cap-drop ALL \
+  --security-opt no-new-privileges:true -p 3000:8080 react-vite-boilerplate
 ```
+
+Production runs non-root nginx on container port 8080, published at
+http://localhost:3000. `docker compose up --build app` applies the same hardening.
+`/health` checks nginx readiness; SPA routes fall back to `index.html`, hashed
+assets are cached immutably, and HTML is revalidated. Image tags and multi-platform
+manifest digests are pinned in the Dockerfiles and Compose configuration.
+Vite environment values are build-time settings, not runtime container secrets.
+
+The optional monorepo proxy uses `docker compose -f docker-compose.monorepo.yml
+--profile production up --build` and maps host port 80 to non-root nginx port 8080.
+It preserves `/api/`, `/admin/`, `/static/`, and `/media/` backend routing and Vite HMR.
+It requires a separately configured backend at `BACKEND_PATH` (default `../backend`);
+the ignored `.runtime/backend` contract checkout is not a deployment source.
 
 ## Key Concepts
 
 ### Authentication Flow
 
-1. User submits login credentials
-2. API validates and returns JWT tokens
-3. Tokens stored in localStorage and Zustand store
-4. Automatic token refresh on API calls
-5. Protected routes check authentication state
+1. Generated login bootstraps CSRF and submits credentials.
+2. The API returns the user and sets HttpOnly access/refresh cookies.
+3. User/session state stays in memory; no tokens enter localStorage.
+4. A protected 401 triggers one shared refresh and one retry in `src/api/auth.ts`.
+5. Reload bootstraps the current user before private routes render.
 
 ### State Management
 
-- **Auth State** - User data, tokens, authentication status
-- **Todo State** - Todo items, filters, loading states
-- **UI State** - Theme, notifications, sidebar state
+- **Auth State** - User data and session status in memory; bootstrap through generated `authGetCurrentUser`
+- **Server State** - Generated TanStack Query options/keys and mutations; paginated Todo envelopes
+- **UI State** - Theme, notifications, sidebar state; no duplicate Todo cache
 
 ### Form Handling
 
 - React Hook Form for form state management
-- Zod schemas for validation
+- Generated Zod schemas, with only frontend-only fields/refinements added locally
 - Consistent error handling and display
 - Accessible form components
 
 ### API Layer
 
-- Axios instance with interceptors
-- Automatic token attachment
-- Error handling and retry logic
-- Type-safe API methods
+- Producer export: `backend/docs/openapi/openapi.json`
+- Pinned `@hey-api/openapi-ts` SDK, fetch client, Zod 4, and TanStack Query 5 plugins
+- `src/api/auth.ts`: cookie credentials, CSRF bootstrap/rotation, shared refresh, one retry
+- Generated methods preserve the producer's casing: User fields camelCase, Todo timestamps snake_case
+
+```bash
+nvm install && nvm use # exact Node LTS from .nvmrc; Node >=22.12 required
+bun install --frozen-lockfile
+bun run api:generate
+bun run api:check
+bun run gauntlet
+```
+
+Generation uses the existing pinned Oxfmt for deterministic generated bytes;
+lint/format tooling and configuration are unchanged. `api:check` regenerates
+into a temporary directory and rejects missing, extra, or changed files.
+Do not edit generated source. Backend cookies require same-site deployment,
+consistent local hostnames, trusted CORS/CSRF origins, and HTTPS in production.
+Use `localhost` for both servers, or `127.0.0.1` for both; do not mix them.
+The production/dev Docker files here are hardened; backend Docker work is owned
+by the separate backend session.
 
 ## Contributing
 
@@ -400,7 +438,7 @@ docker run -p 3000:3000 react-vite-boilerplate
 ### Development Guidelines
 
 - Follow the existing code style
-- Write tests for new features
+- Tests only for bugs, public contracts, or permission/boundary behavior; no rendering/wiring/mocks/snapshots, at most one new file per task, never coverage chasing
 - Update documentation as needed
 - Ensure all checks pass before submitting
 

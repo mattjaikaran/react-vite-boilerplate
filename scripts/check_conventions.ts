@@ -10,9 +10,9 @@
  *   5. NO_INLINE_NAVIGATE — <Navigate> in component render
  *   6. NO_NPM_YARN       — npm install / yarn add in docs
  *   7. NO_DEFAULT_EXPORT — default exports for components
- *   8. API_DIRECT_AXIOS  — raw axios/fetch calls outside lib/api.ts
+ *   8. API_DIRECT_AXIOS  — Axios is forbidden; use the generated fetch SDK
  *   9. NO_USE_STATE_FOR_FORMS — useState for form state (use react-hook-form + zod)
- *  10. NO_INLINE_FETCH — raw fetch/axios/useQuery/useMutation outside hooks/api
+ *  10. NO_INLINE_FETCH — raw fetching outside the generated/transport boundary
  *  11. COMPONENT_SIZE  — component files over 300 lines
  *
  * Usage:
@@ -38,6 +38,9 @@ const EXCLUDE_DIRS = new Set([
   '.vscode',
   'src/optional',
   'src/components/ui',
+  // Generator-owned code is byte-checked by api:check, type-checked, and Oxlinted.
+  // These handwritten conventions cannot be fixed by editing generated output.
+  'src/api/generated',
 ]);
 
 const SOURCE_EXTS = new Set(['.ts', '.tsx']);
@@ -226,7 +229,6 @@ function* checkNoDefaultExport(files: string[]): Generator<Violation> {
 
 function* checkApiDirectAxios(files: string[]): Generator<Violation> {
   for (const fpath of files) {
-    if (fpath.includes('lib/api') || fpath.includes('src/api/')) continue;
     const text = readFileSync(fpath, 'utf-8');
     const lines = text.split('\n');
 
@@ -240,7 +242,8 @@ function* checkApiDirectAxios(files: string[]): Generator<Violation> {
           check: 'API_DIRECT_AXIOS',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: 'Direct axios import — use apiClient from @/lib/api',
+          message:
+            'Axios import — use the generated fetch SDK from src/api/generated',
         };
       }
     }
@@ -271,11 +274,7 @@ function* checkNoUseStateForForms(files: string[]): Generator<Violation> {
 
 function* checkNoInlineFetch(files: string[]): Generator<Violation> {
   for (const fpath of files) {
-    if (
-      fpath.includes('src/hooks/') ||
-      fpath.includes('src/api/') ||
-      fpath.includes('src/lib/api')
-    ) {
+    if (fpath.includes('src/hooks/') || fpath.includes('src/api/')) {
       continue;
     }
     const text = readFileSync(fpath, 'utf-8');
@@ -291,7 +290,8 @@ function* checkNoInlineFetch(files: string[]): Generator<Violation> {
           check: 'NO_INLINE_FETCH',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: 'inline API call — move to src/hooks or src/lib/api',
+          message:
+            'inline API call — use generated SDK/Query helpers; transport belongs in src/api/auth.ts',
         };
       }
     }

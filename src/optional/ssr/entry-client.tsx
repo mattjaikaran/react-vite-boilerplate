@@ -4,8 +4,9 @@
  * This file is the entry point for the client-side bundle in SSR mode
  */
 
+import { configureCookieAuth } from '@/api/auth';
 import { AppProviders } from '@/components/providers';
-import { initializeStore } from '@/lib/store';
+import { initializeStore, useStore } from '@/lib/store';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -22,29 +23,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// Initialize the store
-initializeStore();
+configureCookieAuth(() => useStore.getState().clearSession());
 
-// Hydrate the app if SSR, otherwise render
-const rootElement = document.getElementById('root')!;
-
-if (rootElement.innerHTML) {
-  // SSR mode - hydrate existing markup
-  ReactDOM.hydrateRoot(
-    rootElement,
+void initializeStore().then(() => {
+  const rootElement = document.getElementById('root')!;
+  const app = (
     <React.StrictMode>
       <AppProviders>
         <RouterProvider router={router} />
       </AppProviders>
     </React.StrictMode>
   );
-} else {
-  // CSR mode - render fresh
-  ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-      <AppProviders>
-        <RouterProvider router={router} />
-      </AppProviders>
-    </React.StrictMode>
-  );
-}
+  if (rootElement.innerHTML) {
+    ReactDOM.hydrateRoot(rootElement, app);
+  } else {
+    ReactDOM.createRoot(rootElement).render(app);
+  }
+});

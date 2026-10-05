@@ -1,3 +1,7 @@
+import { apiErrorMessage } from '@/api/error';
+import { authLoginMutation } from '@/api/generated/@tanstack/react-query.gen';
+import type { LoginSchema } from '@/api/generated/types.gen';
+import { zLoginSchema } from '@/api/generated/zod.gen';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -8,24 +12,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useLogin } from '@/hooks/use-auth';
-import type { LoginCredentials } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/lib/store';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
-  password: z
-    .string()
-    .min(1, 'Password is required')
-    .min(6, 'Password must be at least 6 characters'),
-});
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -39,22 +31,27 @@ export function LoginForm({
   onSwitchToMagicLink,
 }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const loginMutation = useLogin();
+  const loginMutation = useMutation(authLoginMutation());
+  const { setUser } = useAuth();
+  const queryClient = useQueryClient();
 
-  const form = useForm<LoginCredentials>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<LoginSchema>({
+    resolver: zodResolver(zLoginSchema),
     defaultValues: {
       email: '',
       password: '',
     },
   });
 
-  const onSubmit = async (data: LoginCredentials) => {
+  const onSubmit = async (data: LoginSchema) => {
+    form.clearErrors('root');
     try {
-      await loginMutation.mutateAsync(data);
+      const user = await loginMutation.mutateAsync({ body: data });
+      queryClient.clear();
+      setUser(user);
       onSuccess?.();
-    } catch {
-      // Error is handled by the mutation hook
+    } catch (error) {
+      form.setError('root', { message: apiErrorMessage(error) });
     }
   };
 
@@ -126,6 +123,12 @@ export function LoginForm({
               </FormItem>
             )}
           />
+
+          {form.formState.errors.root && (
+            <p role="alert" className="text-sm text-destructive">
+              {form.formState.errors.root.message}
+            </p>
+          )}
 
           <Button
             type="submit"

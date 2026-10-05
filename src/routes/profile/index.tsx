@@ -3,6 +3,12 @@
  * User profile view and quick stats
  */
 
+import { apiErrorMessage } from '@/api/error';
+import {
+  authGetCurrentUserOptions,
+  todoListTodosOptions,
+} from '@/api/generated/@tanstack/react-query.gen';
+import type { PaginatedResponseSchemaTodoSchema } from '@/api/generated/types.gen';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { AvatarImage } from '@/components/ui/image';
 import { Button } from '@/components/ui/button';
@@ -13,29 +19,51 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useProfile, useTodoStats } from '@/hooks';
-import { useAuth } from '@/lib/store';
+import { useQueries, useQuery } from '@tanstack/react-query';
+import { useAuth, useStore } from '@/lib/store';
 import { formatDate } from '@/lib/utils';
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { Calendar, Edit, Mail, MapPin, Settings } from 'lucide-react';
-
-const TODAY_FORMATTED = formatDate(new Date());
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
+import { Calendar, Mail, MapPin, Settings } from 'lucide-react';
 
 // TanStack Router requires the named Route registration in this file.
 // react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/profile/')({
+  beforeLoad: () => {
+    if (!useStore.getState().isAuthenticated)
+      throw redirect({ to: '/auth/login' });
+  },
   component: ProfilePage,
 });
 
 function ProfilePage() {
-  const { user } = useAuth();
-  const { data: profileData } = useProfile();
-  const { data: stats } = useTodoStats();
+  const { user, isAuthenticated } = useAuth();
+  const { data: profileData, error: profileError } = useQuery({
+    ...authGetCurrentUserOptions(),
+    enabled: isAuthenticated,
+  });
+  const countQueries = useQueries({
+    queries: [{}, { completed: true }, { completed: false }].map(query => ({
+      ...todoListTodosOptions({ query: { ...query, page_size: 1 } }),
+      select: (data: PaginatedResponseSchemaTodoSchema) => data.count,
+      enabled: isAuthenticated,
+    })),
+  });
+  const statsError = countQueries.find(query => query.error)?.error;
+  const stats = {
+    total: countQueries[0].data ?? 0,
+    completed: countQueries[1].data ?? 0,
+    pending: countQueries[2].data ?? 0,
+  };
   const activeUser = profileData || user;
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {(profileError || statsError) && (
+          <p role="alert" className="text-sm text-destructive">
+            {apiErrorMessage(profileError || statsError)}
+          </p>
+        )}
         {/* Profile header */}
         <Card>
           <CardContent className="pt-6">
@@ -63,11 +91,14 @@ function ProfilePage() {
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="size-4" />
-                    Joined {TODAY_FORMATTED}
+                    Joined{' '}
+                    {activeUser?.dateJoined
+                      ? formatDate(activeUser.dateJoined)
+                      : 'date unavailable'}
                   </span>
                   <span className="flex items-center gap-1">
                     <MapPin className="size-4" />
-                    Location not set
+                    {activeUser?.location || 'Location not set'}
                   </span>
                 </div>
               </div>
@@ -76,8 +107,8 @@ function ProfilePage() {
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/settings">
-                    <Edit className="mr-2 size-4" />
-                    Edit Profile
+                    <Settings className="mr-2 size-4" />
+                    Account Settings
                   </Link>
                 </Button>
                 <Button variant="ghost" size="icon" asChild>
@@ -138,8 +169,10 @@ function ProfilePage() {
         {/* Activity section */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest actions and updates</CardDescription>
+            <CardTitle>Example Activity</CardTitle>
+            <CardDescription>
+              Illustrative layout, not account activity
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

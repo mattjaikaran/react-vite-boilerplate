@@ -63,9 +63,9 @@ export function AboutPage() {
                 <h3 className="mb-2 font-semibold">Routing & API</h3>
                 <ul className="space-y-1 text-sm text-muted-foreground">
                   <li>• TanStack Router for routing</li>
-                  <li>• Axios for HTTP requests</li>
-                  <li>• Authentication system</li>
-                  <li>• Mock API for development</li>
+                  <li>• Generated fetch SDK for HTTP requests</li>
+                  <li>• HttpOnly cookie authentication with CSRF</li>
+                  <li>• Generated Zod and TanStack Query contracts</li>
                 </ul>
               </div>
             </div>

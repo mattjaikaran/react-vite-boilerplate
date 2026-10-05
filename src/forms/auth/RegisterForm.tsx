@@ -1,3 +1,7 @@
+import { apiErrorMessage } from '@/api/error';
+import { authSignupMutation } from '@/api/generated/@tanstack/react-query.gen';
+import { authLogin } from '@/api/generated/sdk.gen';
+import { zUserSignupSchema } from '@/api/generated/zod.gen';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -8,38 +12,20 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useRegister } from '@/hooks/use-auth';
-import type { RegisterCredentials } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/lib/store';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const registerSchema = z
-  .object({
-    firstName: z
-      .string()
-      .min(1, 'First name is required')
-      .min(2, 'First name must be at least 2 characters'),
-    lastName: z
-      .string()
-      .min(1, 'Last name is required')
-      .min(2, 'Last name must be at least 2 characters'),
-    email: z
-      .string()
-      .min(1, 'Email is required')
-      .email('Please enter a valid email address'),
-    password: z
-      .string()
-      .min(1, 'Password is required')
-      .min(8, 'Password must be at least 8 characters')
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-      ),
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
-  })
+const signupSchema = zUserSignupSchema.omit({
+  isStaff: true,
+  isSuperuser: true,
+});
+const registerSchema = signupSchema
+  .extend({ confirmPassword: z.string() })
   .refine(data => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
     path: ['confirmPassword'],
@@ -56,26 +42,40 @@ export function RegisterForm({
 }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const registerMutation = useRegister();
+  const registerMutation = useMutation(authSignupMutation());
+  const { setUser } = useAuth();
+  const queryClient = useQueryClient();
 
-  const form = useForm<RegisterCredentials>({
+  const form = useForm<
+    z.input<typeof registerSchema>,
+    unknown,
+    z.output<typeof registerSchema>
+  >({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
+      username: '',
       email: '',
       password: '',
       confirmPassword: '',
     },
   });
 
-  const onSubmit = async (data: RegisterCredentials) => {
+  const onSubmit = async (data: z.output<typeof registerSchema>) => {
+    form.clearErrors('root');
     try {
-      await registerMutation.mutateAsync(data);
+      const { confirmPassword: _confirmPassword, ...body } = data;
+      await registerMutation.mutateAsync({ body });
+      const { data: user } = await authLogin({
+        body: { email: data.email, password: data.password },
+        throwOnError: true,
+      });
+      queryClient.clear();
+      setUser(user);
       onSuccess?.();
     } catch (error) {
-      // Error is handled by the mutation hook
-      console.error(error);
+      form.setError('root', { message: apiErrorMessage(error) });
     }
   };
 
@@ -129,6 +129,24 @@ export function RegisterForm({
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input
+                    autoComplete="username"
+                    placeholder="Choose a username"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
@@ -227,12 +245,18 @@ export function RegisterForm({
             )}
           />
 
+          {form.formState.errors.root && (
+            <p role="alert" className="text-sm text-destructive">
+              {form.formState.errors.root.message}
+            </p>
+          )}
+
           <Button
             type="submit"
             className="w-full"
-            disabled={registerMutation.isPending}
+            disabled={form.formState.isSubmitting}
           >
-            {registerMutation.isPending && (
+            {form.formState.isSubmitting && (
               <Loader2 className="mr-2 size-4 animate-spin" />
             )}
             Create Account

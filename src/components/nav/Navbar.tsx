@@ -1,3 +1,5 @@
+import { apiErrorMessage } from '@/api/error';
+import { authLogoutMutation } from '@/api/generated/@tanstack/react-query.gen';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,8 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ModeToggle } from '@/components/ui/mode-toggle';
 import { useIsMobile } from '@/hooks';
-import { useLogout } from '@/hooks/use-auth';
-import { useAuth } from '@/lib/store';
+import { useAuth, useUI } from '@/lib/store';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
@@ -22,11 +24,25 @@ interface NavbarProps {
 export function Navbar({ className }: NavbarProps) {
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
-  const logoutMutation = useLogout();
+  const { user, isAuthenticated, clearSession } = useAuth();
+  const { addNotification } = useUI();
+  const queryClient = useQueryClient();
+  const logoutMutation = useMutation({
+    ...authLogoutMutation(),
+    onSuccess: () => {
+      queryClient.clear();
+      clearSession();
+    },
+    onError: error =>
+      addNotification({
+        type: 'error',
+        title: 'Logout failed',
+        message: apiErrorMessage(error),
+      }),
+  });
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    logoutMutation.mutate({});
   };
 
   const navigation = [

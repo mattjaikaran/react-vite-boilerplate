@@ -3,9 +3,6 @@
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string;
   readonly VITE_API_TIMEOUT: string;
-  readonly VITE_AUTH_STORAGE_KEY: string;
-  readonly VITE_AUTH_REFRESH_STORAGE_KEY: string;
-  readonly VITE_AUTH_SESSION_SECONDS: string;
   readonly VITE_DJANGO_CSRF_COOKIE_NAME: string;
   readonly VITE_APP_ENV: string;
   readonly VITE_APP_NAME: string;

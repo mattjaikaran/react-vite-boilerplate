@@ -7,14 +7,10 @@ export interface AppConfig {
   api: {
     baseUrl: string;
     timeout: number;
-    retries: number;
   };
 
   // Authentication
   auth: {
-    tokenKey: string;
-    refreshTokenKey: string;
-    tokenExpiry: number;
     enableMagicLink: boolean;
   };
 
@@ -56,10 +52,6 @@ const buildSettings = {
   VITE_MODE: import.meta.env.VITE_MODE,
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
   VITE_API_TIMEOUT: import.meta.env.VITE_API_TIMEOUT,
-  VITE_API_RETRIES: import.meta.env.VITE_API_RETRIES,
-  VITE_AUTH_STORAGE_KEY: import.meta.env.VITE_AUTH_STORAGE_KEY,
-  VITE_AUTH_REFRESH_STORAGE_KEY: import.meta.env.VITE_AUTH_REFRESH_STORAGE_KEY,
-  VITE_AUTH_SESSION_SECONDS: import.meta.env.VITE_AUTH_SESSION_SECONDS,
   VITE_ENABLE_MAGIC_LINK: import.meta.env.VITE_ENABLE_MAGIC_LINK,
   VITE_ENABLE_TODOS: import.meta.env.VITE_ENABLE_TODOS,
   VITE_ENABLE_NOTIFICATIONS: import.meta.env.VITE_ENABLE_NOTIFICATIONS,
@@ -76,7 +68,7 @@ type PublicSetting = keyof typeof buildSettings;
 const getEnvVar = (key: PublicSetting, defaultValue: string = ''): string => {
   const runtimeValue =
     typeof window !== 'undefined' ? window.__APP_CONFIG__?.[key] : undefined;
-  return runtimeValue || buildSettings[key] || defaultValue;
+  return runtimeValue ?? buildSettings[key] ?? defaultValue;
 };
 
 const getEnvBool = (
@@ -97,19 +89,12 @@ export const config: AppConfig = {
   api: {
     baseUrl: getEnvVar(
       'VITE_API_BASE_URL',
-      isDjangoSPAMode ? '/api' : 'http://localhost:8000/api'
+      isDjangoSPAMode ? '' : 'http://localhost:8000'
     ),
     timeout: parseInt(getEnvVar('VITE_API_TIMEOUT', '10000')),
-    retries: parseInt(getEnvVar('VITE_API_RETRIES', '3')),
   },
 
   auth: {
-    tokenKey: getEnvVar('VITE_AUTH_STORAGE_KEY', 'access_token'),
-    refreshTokenKey: getEnvVar(
-      'VITE_AUTH_REFRESH_STORAGE_KEY',
-      'refresh_token'
-    ),
-    tokenExpiry: parseInt(getEnvVar('VITE_AUTH_SESSION_SECONDS', '3600')), // 1 hour
     enableMagicLink: getEnvBool('VITE_ENABLE_MAGIC_LINK', true),
   },
 
@@ -136,37 +121,3 @@ export const config: AppConfig = {
     },
   }),
 };
-
-// Config sections (access via config.api, config.auth, etc.)
-const apiConfig = config.api;
-const authConfig = config.auth;
-const featureConfig = config.features;
-const envConfig = config.env;
-const djangoConfig = config.django;
-
-// Helper functions (access via config.env.isDevelopment, etc.)
-const isDevelopment = () => config.env.isDevelopment;
-const isProduction = () => config.env.isProduction;
-const isTest = () => config.env.isTest;
-const isDjangoSPA = () => config.env.mode === 'django-spa';
-const isStandalone = () => config.env.mode === 'standalone';
-
-// Feature flags
-// react-doctor-disable-next-line deslop/unused-export
-export const isFeatureEnabled = (
-  feature: keyof typeof config.features
-): boolean => {
-  return config.features[feature];
-};
-
-// Suppress unused vars (these exist for convenience/documentation purposes)
-void apiConfig;
-void authConfig;
-void featureConfig;
-void envConfig;
-void djangoConfig;
-void isDevelopment;
-void isProduction;
-void isTest;
-void isDjangoSPA;
-void isStandalone;

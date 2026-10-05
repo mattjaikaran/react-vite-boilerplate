@@ -3,6 +3,9 @@
  * Main dashboard with stats, charts, and activity overview
  */
 
+import { apiErrorMessage } from '@/api/error';
+import { todoListTodosOptions } from '@/api/generated/@tanstack/react-query.gen';
+import type { PaginatedResponseSchemaTodoSchema } from '@/api/generated/types.gen';
 import { AreaChart, BarChart, DonutChart, StatCard } from '@/components/charts';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import {
@@ -12,12 +15,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useTodoStats, useTodos } from '@/hooks';
-import type { Todo } from '@/types';
-import { createFileRoute } from '@tanstack/react-router';
+import { useQueries, useQuery } from '@tanstack/react-query';
+import { useStore } from '@/lib/store';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import {
   Activity,
-  AlertTriangle,
   Calendar,
   CheckSquare,
   Clock,
@@ -27,16 +29,51 @@ import {
 // TanStack Router requires the named Route registration in this file.
 // react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/dashboard/')({
+  beforeLoad: () => {
+    if (!useStore.getState().isAuthenticated)
+      throw redirect({ to: '/auth/login' });
+  },
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { data: stats, isLoading: statsLoading } = useTodoStats();
-  const { data: todosData, isLoading: todosLoading } = useTodos({
-    page_size: 5,
+  const countQueries = useQueries({
+    queries: [
+      {},
+      { completed: true },
+      { completed: false },
+      { priority: 'high' },
+      { priority: 'medium' },
+      { priority: 'low' },
+    ].map(query => ({
+      ...todoListTodosOptions({ query: { ...query, page_size: 1 } }),
+      select: (data: PaginatedResponseSchemaTodoSchema) => data.count,
+    })),
   });
+  const statsLoading = countQueries.some(query => query.isPending);
+  const statsError = countQueries.find(query => query.error)?.error;
+  const stats = {
+    total: countQueries[0].data ?? 0,
+    completed: countQueries[1].data ?? 0,
+    pending: countQueries[2].data ?? 0,
+    byPriority: {
+      high: countQueries[3].data ?? 0,
+      medium: countQueries[4].data ?? 0,
+      low: countQueries[5].data ?? 0,
+    },
+  };
+  const {
+    data: recent,
+    isPending: todosLoading,
+    error: todosError,
+  } = useQuery(
+    todoListTodosOptions({
+      query: { page_size: 5, ordering: '-created_at' },
+    })
+  );
+  const todosData = recent?.results;
 
-  // Mock data for charts (in real app, this would come from API)
+  // Chart examples are visibly labelled, not presented as backend analytics.
   const weeklyActivityData = [
     { label: 'Mon', value: 12 },
     { label: 'Tue', value: 19 },
@@ -50,17 +87,17 @@ function DashboardPage() {
   const priorityData = [
     {
       label: 'High',
-      value: stats?.byPriority?.high || 5,
+      value: stats.byPriority.high,
       color: 'hsl(0, 84%, 60%)',
     },
     {
       label: 'Medium',
-      value: stats?.byPriority?.medium || 12,
+      value: stats.byPriority.medium,
       color: 'hsl(38, 92%, 50%)',
     },
     {
       label: 'Low',
-      value: stats?.byPriority?.low || 8,
+      value: stats.byPriority.low,
       color: 'hsl(142, 71%, 45%)',
     },
   ];
@@ -85,41 +122,34 @@ function DashboardPage() {
           </p>
         </div>
 
+        {(statsError || todosError) && (
+          <p role="alert" className="text-sm text-destructive">
+            {apiErrorMessage(statsError || todosError)}
+          </p>
+        )}
         {/* Stats grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Total Tasks"
-            value={stats?.total || 0}
-            icon={CheckSquare}
-            trend={{ value: 12, label: 'from last month' }}
-            loading={statsLoading}
-          />
-          <StatCard
-            title="Completed"
-            value={stats?.completed || 0}
-            icon={TrendingUp}
-            trend={{ value: 8, label: 'from last week' }}
-            loading={statsLoading}
-          />
-          <StatCard
-            title="Pending"
-            value={stats?.pending || 0}
-            icon={Clock}
-            trend={{
-              value: -5,
-              label: 'from last week',
-              isPositiveGood: false,
-            }}
-            loading={statsLoading}
-          />
-          <StatCard
-            title="Overdue"
-            value={stats?.overdue || 0}
-            icon={AlertTriangle}
-            trend={{ value: 2, label: 'need attention', isPositiveGood: false }}
-            loading={statsLoading}
-          />
-        </div>
+        {!statsError && (
+          <div className="grid gap-4 md:grid-cols-3">
+            <StatCard
+              title="Total Tasks"
+              value={stats?.total || 0}
+              icon={CheckSquare}
+              loading={statsLoading}
+            />
+            <StatCard
+              title="Completed"
+              value={stats?.completed || 0}
+              icon={TrendingUp}
+              loading={statsLoading}
+            />
+            <StatCard
+              title="Pending"
+              value={stats?.pending || 0}
+              icon={Clock}
+              loading={statsLoading}
+            />
+          </div>
+        )}
 
         {/* Charts row */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -130,7 +160,9 @@ function DashboardPage() {
                 <Activity className="size-5" />
                 Weekly Activity
               </CardTitle>
-              <CardDescription>Tasks completed this week</CardDescription>
+              <CardDescription>
+                Illustrative data, not backend analytics
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <AreaChart data={weeklyActivityData} height={250} />
@@ -149,7 +181,7 @@ function DashboardPage() {
                 size={180}
                 thickness={25}
                 showCenter
-                centerValue={stats?.total || 25}
+                centerValue={stats.total}
                 centerLabel="Total"
                 showLegend={false}
               />
@@ -182,7 +214,9 @@ function DashboardPage() {
                 <Calendar className="size-5" />
                 Monthly Trend
               </CardTitle>
-              <CardDescription>Completed tasks over time</CardDescription>
+              <CardDescription>
+                Illustrative data, not backend analytics
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <BarChart data={monthlyData} height={200} />
@@ -207,7 +241,7 @@ function DashboardPage() {
                 </div>
               ) : todosData && todosData.length > 0 ? (
                 <div className="space-y-3">
-                  {todosData.map((todo: Todo) => (
+                  {todosData.map(todo => (
                     <div
                       key={todo.id}
                       className="flex items-center gap-3 rounded-lg bg-muted/50 p-3 transition-colors hover:bg-muted"
@@ -237,11 +271,9 @@ function DashboardPage() {
                           {todo.priority} priority
                         </p>
                       </div>
-                      {todo.dueDate && (
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(todo.dueDate).toLocaleDateString()}
-                        </span>
-                      )}
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(todo.created_at).toLocaleDateString()}
+                      </span>
                     </div>
                   ))}
                 </div>

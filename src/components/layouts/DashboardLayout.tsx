@@ -3,6 +3,8 @@
  * Protected layout for authenticated dashboard pages
  */
 
+import { apiErrorMessage } from '@/api/error';
+import { authLogoutMutation } from '@/api/generated/@tanstack/react-query.gen';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,15 +15,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ModeToggle } from '@/components/ui/mode-toggle';
-import { useLogout } from '@/hooks';
 import {
   useEnvironment,
   useIsDjangoSPA,
   useIsStandalone,
   useViewportSize,
 } from '@/hooks/use-environment';
-import { useAuth } from '@/lib/store';
+import { useAuth, useUI } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from '@tanstack/react-router';
 import {
   Bell,
@@ -55,8 +57,22 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const { user } = useAuth();
-  const { mutate: logout } = useLogout();
+  const { user, clearSession } = useAuth();
+  const { addNotification } = useUI();
+  const queryClient = useQueryClient();
+  const { mutate: logout } = useMutation({
+    ...authLogoutMutation(),
+    onSuccess: () => {
+      queryClient.clear();
+      clearSession();
+    },
+    onError: error =>
+      addNotification({
+        type: 'error',
+        title: 'Logout failed',
+        message: apiErrorMessage(error),
+      }),
+  });
   const env = useEnvironment();
   const isDjangoSPA = useIsDjangoSPA();
   const isStandalone = useIsStandalone();
@@ -221,7 +237,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="cursor-pointer text-rose-500"
-                    onClick={() => logout()}
+                    onClick={() => logout({})}
                   >
                     <LogOut className="mr-2 size-4" />
                     Log out

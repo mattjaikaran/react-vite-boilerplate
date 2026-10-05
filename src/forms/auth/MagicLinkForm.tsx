@@ -1,3 +1,7 @@
+import { apiErrorMessage } from '@/api/error';
+import { authRequestPasswordlessLoginMutation } from '@/api/generated/@tanstack/react-query.gen';
+import type { PasswordlessLoginRequest } from '@/api/generated/types.gen';
+import { zPasswordlessLoginRequest } from '@/api/generated/zod.gen';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -8,19 +12,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useMagicLink } from '@/hooks/use-auth';
-import type { MagicLinkRequest } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { Loader2, Mail } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const magicLinkSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
-});
 
 interface MagicLinkFormProps {
   onSuccess?: () => void;
@@ -31,21 +26,22 @@ export function MagicLinkForm({
   onSuccess,
   onSwitchToLogin,
 }: MagicLinkFormProps) {
-  const magicLinkMutation = useMagicLink();
+  const magicLinkMutation = useMutation(authRequestPasswordlessLoginMutation());
 
-  const form = useForm<MagicLinkRequest>({
-    resolver: zodResolver(magicLinkSchema),
+  const form = useForm<PasswordlessLoginRequest>({
+    resolver: zodResolver(zPasswordlessLoginRequest),
     defaultValues: {
       email: '',
     },
   });
 
-  const onSubmit = async (data: MagicLinkRequest) => {
+  const onSubmit = async (data: PasswordlessLoginRequest) => {
+    form.clearErrors('root');
     try {
-      await magicLinkMutation.mutateAsync(data);
+      await magicLinkMutation.mutateAsync({ body: data });
       onSuccess?.();
-    } catch {
-      // Error is handled by the mutation hook
+    } catch (error) {
+      form.setError('root', { message: apiErrorMessage(error) });
     }
   };
 
@@ -83,6 +79,12 @@ export function MagicLinkForm({
               </FormItem>
             )}
           />
+
+          {form.formState.errors.root && (
+            <p role="alert" className="text-sm text-destructive">
+              {form.formState.errors.root.message}
+            </p>
+          )}
 
           <Button
             type="submit"

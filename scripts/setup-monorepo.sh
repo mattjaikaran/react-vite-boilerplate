@@ -66,16 +66,11 @@ if [ ! -f ".env" ]; then
 # Application Mode - Set to 'django-spa' for monorepo setup
 VITE_MODE=django-spa
 
-# API Configuration - Points to Django backend
-VITE_API_BASE_URL=http://localhost:8000/api/v1
+# API origin only; generated paths already include /api
+VITE_API_BASE_URL=http://localhost:8000
 VITE_API_TIMEOUT=10000
-VITE_API_RETRIES=3
-VITE_API_VERSION=v1
 
-# Authentication - Using Django Ninja JWT
-VITE_AUTH_STORAGE_KEY=access_token
-VITE_AUTH_REFRESH_STORAGE_KEY=refresh_token
-VITE_AUTH_SESSION_SECONDS=3600
+# HttpOnly cookie authentication with CSRF protection
 VITE_ENABLE_MAGIC_LINK=true
 
 # Features
@@ -84,13 +79,12 @@ VITE_ENABLE_NOTIFICATIONS=true
 VITE_ENABLE_ANALYTICS=false
 VITE_ENABLE_DARK_MODE=true
 VITE_ENABLE_DEVTOOLS=true
-VITE_ENABLE_MOCK_API=false
 
 # Django Integration
 VITE_DJANGO_CSRF_COOKIE_NAME=csrftoken
 VITE_DJANGO_STATIC_URL=/static/
 VITE_DJANGO_MEDIA_URL=/media/
-VITE_DJANGO_API_PREFIX=/api/v1
+VITE_DJANGO_API_PREFIX=/api
 
 # Environment
 VITE_APP_ENV=development
@@ -109,12 +103,11 @@ cat > .env.monorepo << 'EOF'
 # Copy this to .env to use Django SPA mode
 
 VITE_MODE=django-spa
-VITE_API_BASE_URL=http://localhost:8000/api/v1
-VITE_ENABLE_MOCK_API=false
+VITE_API_BASE_URL=http://localhost:8000
 VITE_DJANGO_CSRF_COOKIE_NAME=csrftoken
 VITE_DJANGO_STATIC_URL=/static/
 VITE_DJANGO_MEDIA_URL=/media/
-VITE_DJANGO_API_PREFIX=/api/v1
+VITE_DJANGO_API_PREFIX=/api
 EOF
 echo -e "${GREEN}   ✅ Created .env.monorepo reference file${NC}"
 
@@ -126,6 +119,7 @@ cat > vite.config.monorepo.ts << 'EOF'
  * Vite configuration for monorepo setup with Django backend
  * Use this when running frontend alongside Django
  */
+import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
@@ -138,6 +132,7 @@ export default defineConfig({
       autoCodeSplitting: true,
     }),
     react(),
+    tailwindcss(),
   ],
   resolve: {
     alias: {
@@ -150,7 +145,6 @@ export default defineConfig({
       '@/api': path.resolve(import.meta.dirname, './src/api'),
       '@/types': path.resolve(import.meta.dirname, './src/types'),
       '@/config': path.resolve(import.meta.dirname, './src/config'),
-      '@/mock-api': path.resolve(import.meta.dirname, './src/mock-api'),
     },
   },
   server: {

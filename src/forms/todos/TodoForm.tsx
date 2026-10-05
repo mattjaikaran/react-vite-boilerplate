@@ -1,3 +1,11 @@
+import { apiErrorMessage } from '@/api/error';
+import {
+  todoCreateTodoMutation,
+  todoListTodosQueryKey,
+  todoUpdateTodoMutation,
+} from '@/api/generated/@tanstack/react-query.gen';
+import type { TodoSchema } from '@/api/generated/types.gen';
+import { zCreateTodoSchema } from '@/api/generated/zod.gen';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -8,7 +16,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -17,93 +24,63 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useCreateTodo, useUpdateTodo } from '@/hooks/use-todo';
-import type { CreateTodoRequest, Todo, UpdateTodoRequest } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Plus, X } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const todoSchema = z.object({
-  title: z
-    .string()
-    .min(1, 'Title is required')
-    .max(100, 'Title must be less than 100 characters'),
-  description: z
-    .string()
-    .max(500, 'Description must be less than 500 characters')
-    .optional(),
-  priority: z.enum(['low', 'medium', 'high']),
-  dueDate: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  tagInput: z.string(),
-});
-
 interface TodoFormProps {
-  todo?: Todo;
+  todo?: TodoSchema;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
 export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
-  const createTodoMutation = useCreateTodo();
-  const updateTodoMutation = useUpdateTodo();
+  const queryClient = useQueryClient();
+  const invalidateTodos = () =>
+    queryClient.invalidateQueries({ queryKey: todoListTodosQueryKey() });
+  const createTodoMutation = useMutation({
+    ...todoCreateTodoMutation(),
+    onSuccess: invalidateTodos,
+  });
+  const updateTodoMutation = useMutation({
+    ...todoUpdateTodoMutation(),
+    onSuccess: invalidateTodos,
+  });
 
   const isEditing = !!todo;
   const isLoading =
     createTodoMutation.isPending || updateTodoMutation.isPending;
 
-  const form = useForm<CreateTodoRequest & { tagInput: string }>({
-    resolver: zodResolver(todoSchema),
+  const form = useForm<
+    z.input<typeof zCreateTodoSchema>,
+    unknown,
+    z.output<typeof zCreateTodoSchema>
+  >({
+    resolver: zodResolver(zCreateTodoSchema),
     defaultValues: {
       title: todo?.title || '',
       description: todo?.description || '',
       priority: todo?.priority || 'medium',
-      dueDate: todo?.dueDate || '',
-      tags: todo?.tags || [],
-      tagInput: '',
+      completed: todo?.completed ?? false,
     },
   });
-  const tags = form.watch('tags') ?? [];
-  const tagInput = form.watch('tagInput');
 
-  const onSubmit = async (data: CreateTodoRequest & { tagInput: string }) => {
-    const { tagInput: _draft, ...todoData } = data;
-
+  const onSubmit = async (data: z.output<typeof zCreateTodoSchema>) => {
+    form.clearErrors('root');
     try {
-      if (isEditing) {
+      if (todo) {
         await updateTodoMutation.mutateAsync({
-          id: todo.id,
-          updates: todoData as UpdateTodoRequest,
+          path: { todo_id: todo.id },
+          body: data,
         });
       } else {
-        await createTodoMutation.mutateAsync(todoData);
+        await createTodoMutation.mutateAsync({ body: data });
       }
       onSuccess?.();
-    } catch {
-      // Error is handled by the mutation hooks
-    }
-  };
-
-  const addTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      form.setValue('tags', [...tags, tagInput.trim()], { shouldDirty: true });
-      form.setValue('tagInput', '');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    form.setValue(
-      'tags',
-      tags.filter(tag => tag !== tagToRemove),
-      { shouldDirty: true }
-    );
-  };
-
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addTag();
+    } catch (error) {
+      form.setError('root', { message: apiErrorMessage(error) });
     }
   };
 
@@ -180,64 +157,13 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Due Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="todo-tag-input">Tags</Label>
-            <div className="flex gap-2">
-              <Input
-                id="todo-tag-input"
-                placeholder="Add a tag"
-                value={tagInput}
-                {...form.register('tagInput')}
-                onKeyDown={handleTagKeyDown}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={addTag}
-                aria-label="Add tag"
-                disabled={!tagInput.trim()}
-              >
-                <Plus className="size-4" />
-              </Button>
-            </div>
-            {tags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-xs text-secondary-foreground"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      aria-label={`Remove tag ${tag}`}
-                      className="hover:text-destructive"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          {form.formState.errors.root && (
+            <p role="alert" className="text-sm text-destructive">
+              {form.formState.errors.root.message}
+            </p>
+          )}
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isLoading} className="flex-1">
