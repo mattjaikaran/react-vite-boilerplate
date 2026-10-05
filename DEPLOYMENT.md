@@ -12,9 +12,8 @@ Create a `.env.production` file:
 
 ```env
 VITE_MODE=standalone
-VITE_API_BASE_URL=https://your-api-domain.com/api/v1
+VITE_API_BASE_URL=https://your-api-domain.com
 VITE_API_TIMEOUT=10000
-VITE_API_RETRIES=3
 VITE_ENABLE_TODOS=true
 VITE_ENABLE_NOTIFICATIONS=true
 VITE_ENABLE_ANALYTICS=true
@@ -180,11 +179,11 @@ Create a `.env.production` file:
 
 ```env
 VITE_MODE=django-spa
-VITE_API_BASE_URL=/api/v1
+VITE_API_BASE_URL=
 VITE_DJANGO_CSRF_COOKIE_NAME=csrftoken
 VITE_DJANGO_STATIC_URL=/static/
 VITE_DJANGO_MEDIA_URL=/media/
-VITE_DJANGO_API_PREFIX=/api/v1
+VITE_DJANGO_API_PREFIX=/api
 ```
 
 ### Build Process for Django
@@ -228,52 +227,60 @@ echo "Deployment complete!"
 
 ## Docker Deployment
 
-### Standalone Mode Dockerfile
+### Production frontend
 
-```dockerfile
-FROM node:18-alpine as build
+Use this repository's `Dockerfile`, not a separate Node or combined Django image:
 
-WORKDIR /app
-COPY package*.json ./
-RUN bun ci --only=production
-
-COPY . .
-RUN bun run build
-
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
-
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+```bash
+docker build --build-arg VITE_API_BASE_URL=https://api.example.com \
+  -t react-vite-boilerplate .
+docker run --read-only --tmpfs /tmp:uid=101,gid=101,mode=1770 \
+  --cap-drop ALL --security-opt no-new-privileges:true \
+  -p 3000:8080 react-vite-boilerplate
 ```
 
-### Django + React Dockerfile
+The build installs from `bun.lock` with `--frozen-lockfile` and compiles with Bun.
+The release image contains only the static build and nginx configuration, runs as
+UID/GID 101, and listens on 8080. nginx writes its PID and temporary files under
+`/tmp`, logs to stdout/stderr, serves SPA fallbacks, and checks `/health`.
+Security headers also apply to health and cache locations; hashed `/assets/`
+files receive immutable caching, while HTML is revalidated.
 
-```dockerfile
-FROM node:18-alpine as frontend
+`docker compose up --build app` publishes the same production image on port 3000
+with a read-only filesystem, writable `/tmp`, dropped capabilities, and no privilege
+escalation. Terminate TLS at your deployment's external ingress.
+Vite configuration is compiled into assets: supply required public values during
+the build, never secrets. Runtime environment variables do not rewrite the build.
+`VITE_API_BASE_URL` is an origin, not `/api`; set it to an empty string and
+`VITE_MODE=django-spa` for a same-origin API proxy. Compose forwards these two
+public build arguments, preserving an explicitly empty origin.
 
-WORKDIR /app/frontend
-COPY package*.json ./
-RUN bun ci
+nginx sends nosniff, SAMEORIGIN, referrer, Permissions-Policy, and baseline CSP
+headers on successful and error responses. CSP blocks objects, foreign base URLs,
+and foreign framing; it does not restrict script/connect sources. Configure a
+stricter application CSP and HSTS at the TLS ingress for your deployment.
 
-COPY . .
-RUN bun run build
+### Development and monorepo proxy
 
-FROM python:3.11-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-COPY --from=frontend /app/frontend/dist ./static/
-
-RUN python manage.py collectstatic --noinput
-
-EXPOSE 8000
-CMD ["gunicorn", "project.wsgi:application", "--bind", "0.0.0.0:8000"]
+```bash
+docker compose --profile dev up --build app-dev
+# Separate backend deployment required:
+docker compose -f docker-compose.monorepo.yml --profile production up --build
 ```
+
+Development runs as the Bun user on container port 3000, published at port 3001
+in standalone Compose and port 3000 in monorepo Compose. Named dependency volumes
+must be recreated when the lockfile changes. The optional monorepo nginx proxy
+publishes host port 80 to container port 8080 and preserves backend API/admin/static/
+media routing and frontend HMR. `BACKEND_PATH` defaults to `../backend`; it must
+point to an independently configured backend, not the isolated contract checkout.
+The monorepo database credentials are local examples, not production credentials.
+The backend must trust the browser's frontend origin in both CORS and CSRF
+settings, including port 3001 when using standalone development Compose.
+
+Both Dockerfiles and every third-party Compose image use exact tags plus immutable
+multi-platform manifest digests. Upgrade tags and digests together after inspecting
+the registry manifests with `docker buildx imagetools inspect`.
 
 ## Environment-Specific Configuration
 

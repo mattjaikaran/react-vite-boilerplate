@@ -1,10 +1,8 @@
-version: '3.8'
-
 # Docker Compose for Django + React Monorepo
 # This configuration is designed to work alongside the Django backend
 #
 # Usage:
-#   docker-compose -f docker-compose.monorepo.yml up
+#   docker compose -f docker-compose.monorepo.yml up
 #
 # Expected monorepo structure:
 #   /monorepo
@@ -23,14 +21,12 @@ services:
       - '3000:3000'
     volumes:
       - .:/app
-      - /app/node_modules
+      - frontend_node_modules:/app/node_modules
     environment:
       - NODE_ENV=development
       - VITE_MODE=django-spa
-      - VITE_API_BASE_URL=http://backend:8000/api
-      - VITE_ENABLE_MOCK_API=false
+      - VITE_API_BASE_URL=http://localhost:8000
       - VITE_DEBUG=true
-    command: bun run dev --host
     depends_on:
       - backend
     networks:
@@ -59,7 +55,7 @@ services:
 
   # PostgreSQL Database
   db:
-    image: postgres:16-alpine
+    image: postgres:16.13-alpine@sha256:4e6e670bb069649261c9c18031f0aded7bb249a5b6664ddec29c013a89310d50
     ports:
       - '5432:5432'
     environment:
@@ -78,7 +74,7 @@ services:
 
   # Redis (for caching and sessions)
   redis:
-    image: redis:7-alpine
+    image: redis:7.4.8-alpine@sha256:7aec734b2bb298a1d769fd8729f13b8514a41bf90fcdd1f38ec52267fbaa8ee6
     ports:
       - '6379:6379'
     volumes:
@@ -88,11 +84,26 @@ services:
 
   # Nginx Reverse Proxy (Production-like setup)
   nginx:
-    image: nginx:alpine
+    image: nginxinc/nginx-unprivileged:1.29.5-alpine@sha256:42a7d7f2ee23e9f5a1dcdf3647ba5c585bbd18f79e79cd817e70e8cd61c55779
+    user: '101:101'
+    read_only: true
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=1770
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/health']
+      interval: 30s
+      timeout: 3s
+      retries: 3
     ports:
-      - '80:80'
+      - '80:8080'
     volumes:
       - ./nginx/monorepo.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/security-headers.conf:/etc/nginx/security-headers.conf:ro
     depends_on:
       - frontend
       - backend
@@ -106,5 +117,6 @@ networks:
     driver: bridge
 
 volumes:
+  frontend_node_modules:
   postgres_data:
   redis_data:

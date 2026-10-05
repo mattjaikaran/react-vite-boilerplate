@@ -1,19 +1,10 @@
-# Development Dockerfile
-FROM oven/bun:1
-
+FROM oven/bun:1.4.2-alpine@sha256:d888c0ae6c86d7866ff10c5aafdd9077b36aee6455b33dd270fb93c0dd5cef6f
 WORKDIR /app
-
-# Copy package files
-COPY package.json bun.lockb ./
-
-# Install dependencies
-RUN bun install
-
-# Copy source code
-COPY . .
-
-# Expose port
+RUN chown bun:bun /app
+USER bun
+COPY --chown=bun:bun package.json bun.lock ./
+RUN bun install --frozen-lockfile
+COPY --chown=bun:bun . .
 EXPOSE 3000
-
-# Start development server
-CMD ["bun", "run", "dev", "--host"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 CMD bun -e 'const response = await fetch("http://127.0.0.1:3000/"); if (!response.ok) process.exit(1)' || exit 1
+CMD ["bun", "run", "dev", "--host", "0.0.0.0", "--port", "3000", "--strictPort"]

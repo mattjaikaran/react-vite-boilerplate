@@ -73,12 +73,12 @@ setup: install ## Full project setup
 	@echo "Installing dependencies..."
 	bun install
 	@echo "Setting up Shadcn/ui..."
-	bunx shadcn@latest init -y
+	bunx shadcn@4.21.2 init -y
 	@echo "Setup complete!"
 
 setup-shadcn: ## Setup Shadcn/ui components
 	@echo "Setting up Shadcn/ui..."
-	bunx shadcn@latest init -y
+	bunx shadcn@4.21.2 init -y
 
 add-shadcn-component: ## Add a Shadcn/ui component (usage: make add-shadcn-component COMPONENT=button)
 	@if [ -z "$(COMPONENT)" ]; then \
@@ -87,37 +87,37 @@ add-shadcn-component: ## Add a Shadcn/ui component (usage: make add-shadcn-compo
 		exit 1; \
 	fi
 	@echo "Adding Shadcn/ui component: $(COMPONENT)"
-	bunx shadcn@latest add $(COMPONENT) -y
+	bunx shadcn@4.21.2 add $(COMPONENT) -y
 
 # Shadcn/ui Bulk Component Installation
 shadcn-common: ## Install common shadcn/ui components (button, input, card, badge, avatar)
 	@echo "Installing common shadcn/ui components..."
-	bunx shadcn@latest add button input card badge avatar -y
+	bunx shadcn@4.21.2 add button input card badge avatar -y
 	@echo "Common components installed!"
 
 shadcn-forms: ## Install form-related shadcn/ui components
 	@echo "Installing form-related shadcn/ui components..."
-	bunx shadcn@latest add form input textarea select checkbox radio-group switch label -y
+	bunx shadcn@4.21.2 add form input textarea select checkbox radio-group switch label -y
 	@echo "Form components installed!"
 
 shadcn-data: ## Install data display shadcn/ui components
 	@echo "Installing data display shadcn/ui components..."
-	bunx shadcn@latest add table data-table pagination badge progress separator -y
+	bunx shadcn@4.21.2 add table data-table pagination badge progress separator -y
 	@echo "Data display components installed!"
 
 shadcn-navigation: ## Install navigation shadcn/ui components
 	@echo "Installing navigation shadcn/ui components..."
-	bunx shadcn@latest add navigation-menu breadcrumb tabs command menubar -y
+	bunx shadcn@4.21.2 add navigation-menu breadcrumb tabs command menubar -y
 	@echo "Navigation components installed!"
 
 shadcn-feedback: ## Install feedback shadcn/ui components
 	@echo "Installing feedback shadcn/ui components..."
-	bunx shadcn@latest add alert alert-dialog toast dialog sheet popover tooltip -y
+	bunx shadcn@4.21.2 add alert alert-dialog toast dialog sheet popover tooltip -y
 	@echo "Feedback components installed!"
 
 shadcn-layout: ## Install layout shadcn/ui components
 	@echo "Installing layout shadcn/ui components..."
-	bunx shadcn@latest add aspect-ratio resizable scroll-area separator skeleton -y
+	bunx shadcn@4.21.2 add aspect-ratio resizable scroll-area separator skeleton -y
 	@echo "Layout components installed!"
 
 shadcn-all: ## Install all common shadcn/ui component categories
@@ -132,12 +132,12 @@ shadcn-all: ## Install all common shadcn/ui component categories
 
 shadcn-list: ## List all available shadcn/ui components
 	@echo "Available shadcn/ui components:"
-	bunx shadcn@latest add --help | grep -A 50 "Available components:" || echo "Run 'bunx shadcn@latest add' to see available components"
+	bunx shadcn@4.21.2 add --help
 
 shadcn-update: ## Update all shadcn/ui components
 	@echo "Updating shadcn/ui components..."
-	bunx shadcn@latest diff
-	@echo "Check the diff above and run 'bunx shadcn@latest add <component> -y' to update specific components"
+	bunx shadcn@4.21.2 diff
+	@echo "Check the diff above and run 'bunx shadcn@4.21.2 add <component> -y' to update specific components"
 
 # Docker Commands
 docker-build: ## Build Docker image
@@ -146,7 +146,7 @@ docker-build: ## Build Docker image
 
 docker-run: ## Run Docker container
 	@echo "Running Docker container..."
-	docker run -p 3000:3000 --name react-vite-boilerplate-container react-vite-boilerplate
+	docker run -p 3000:8080 --name react-vite-boilerplate-container react-vite-boilerplate
 
 docker-stop: ## Stop Docker container
 	@echo "Stopping Docker container..."
@@ -155,7 +155,7 @@ docker-stop: ## Stop Docker container
 
 docker-dev: ## Run development environment with Docker Compose
 	@echo "Starting development environment with Docker Compose..."
-	docker-compose up --build
+	docker compose --profile dev up --build app-dev
 
 # Utility Commands
 clean: ## Clean node_modules and build artifacts
@@ -311,12 +311,10 @@ security-audit: ## Run security audit
 
 performance-test: ## Run Lighthouse CI performance test
 	@echo "Running performance test..."
-	@echo "Installing @lhci/cli if not present..."
-	@bun add -D @lhci/cli
 	@echo "Building for performance test..."
 	@make build
 	@echo "Running Lighthouse CI..."
-	@bunx lhci autorun --upload.target=temporary-public-storage
+	@bunx @lhci/cli@0.15.1 autorun --upload.target=temporary-public-storage
 
 # Maintenance
 update-all: ## Update all dependencies and tools
@@ -393,28 +391,10 @@ django-build: ## Build and prepare for Django with proper static file structure
 	@make django-prep
 	@echo "Django build complete! Copy dist/static/ to your Django STATIC_ROOT"
 
-django-types: ## Generate TypeScript types from Django API schema
-	@echo "Generating TypeScript types from Django API..."
-	@if [ -z "$(SCHEMA_URL)" ]; then \
-		echo "Usage: make django-types SCHEMA_URL=http://localhost:8000/api/schema/"; \
-		echo "Or set DJANGO_SCHEMA_URL environment variable"; \
-		exit 1; \
-	fi
-	@echo "Fetching schema from $(SCHEMA_URL)..."
-	@mkdir -p src/types/generated
-	@curl -s "$(SCHEMA_URL)" > src/types/generated/schema.json
-	@echo "Schema downloaded. Install openapi-typescript for type generation:"
-	@echo "bun add -D openapi-typescript"
-	@echo "Then run: bunx openapi-typescript src/types/generated/schema.json -o src/types/generated/api.ts"
+django-types: api-types ## Generate the authoritative Django API contracts
 
-api-schema: ## Download API schema from Django backend
-	@echo "Downloading API schema..."
-	@SCHEMA_URL=$${SCHEMA_URL:-$${DJANGO_SCHEMA_URL:-http://localhost:8000/api/schema/}}; \
-	echo "Using schema URL: $$SCHEMA_URL"; \
-	mkdir -p src/types/generated; \
-	curl -s "$$SCHEMA_URL" > src/types/generated/schema.json && \
-	echo "Schema downloaded to src/types/generated/schema.json" || \
-	echo "Failed to download schema. Make sure your Django server is running and SCHEMA_URL is correct"
+api-schema: ## Check the producer-exported OpenAPI schema and generated contracts
+	@bun run api:check
 
 cors-setup: ## Generate CORS configuration helper for Django
 	@echo "Generating CORS configuration helper..."
@@ -551,27 +531,11 @@ django-all: cors-setup django-urls django-settings ## Generate all Django integr
 	@echo "All Django integration helpers generated in docs/django-integration/"
 
 # API Integration Commands
-api-types: ## Generate TypeScript types from OpenAPI schema
-	@echo "Generating API types from OpenAPI schema..."
-	@if [ ! -f "src/types/generated/schema.json" ]; then \
-		echo "No schema found. Run 'make api-schema' first"; \
-		exit 1; \
-	fi
-	@echo "Installing openapi-typescript if not present..."
-	@bun add -D openapi-typescript
-	@echo "Generating TypeScript types..."
-	@bunx openapi-typescript src/types/generated/schema.json -o src/types/generated/api.ts
-	@echo "API types generated at src/types/generated/api.ts"
+api-types: ## Generate SDK, types, Zod schemas, and TanStack Query helpers
+	@bun run api:generate
 
-api-client: ## Generate API client from schema
-	@echo "Generating API client..."
-	@if [ ! -f "src/types/generated/schema.json" ]; then \
-		echo "No schema found. Run 'make api-schema' first"; \
-		exit 1; \
-	fi
-	@bun add -D @hey-api/openapi-ts
-	@bunx @hey-api/openapi-ts -i src/types/generated/schema.json -o src/api/generated
-	@echo "API client generated at src/api/generated/"
+api-client: ## Generate the fetch client and all API contracts
+	@bun run api:generate
 
 # Help for specific categories
 help-dev: ## Show development commands
