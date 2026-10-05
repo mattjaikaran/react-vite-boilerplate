@@ -71,8 +71,9 @@ export function clientOnly<T>(fn: () => T): T {
  * Cache function for server components
  * Memoizes async function calls during a request
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function cache<T extends (...args: any[]) => Promise<unknown>>(fn: T): T {
+export function cache<T extends (...args: any[]) => Promise<unknown>>(
+  fn: T
+): T {
   const cacheMap = new Map<string, unknown>();
 
   return (async (...args: Parameters<T>) => {

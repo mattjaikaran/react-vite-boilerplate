@@ -23,24 +23,24 @@
  * Exit: 0 = no violations, 1 = violations found
  */
 
-import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, relative, extname } from "node:path";
-import { parseArgs } from "node:util";
-import { argv, exit } from "node:process";
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { join, relative, extname } from 'node:path';
+import { parseArgs } from 'node:util';
+import { argv, exit } from 'node:process';
 
-const PROJECT_ROOT = new URL("..", import.meta.url).pathname;
+const PROJECT_ROOT = new URL('..', import.meta.url).pathname;
 
 const EXCLUDE_DIRS = new Set([
-  "node_modules",
-  "dist",
-  ".git",
-  "coverage",
-  ".vscode",
-  "src/optional",
-  "src/components/ui",
+  'node_modules',
+  'dist',
+  '.git',
+  'coverage',
+  '.vscode',
+  'src/optional',
+  'src/components/ui',
 ]);
 
-const SOURCE_EXTS = new Set([".ts", ".tsx"]);
+const SOURCE_EXTS = new Set(['.ts', '.tsx']);
 
 interface Violation {
   check: string;
@@ -57,7 +57,7 @@ function collectFiles(root: string): string[] {
   function isExcluded(rel: string, entry: string): boolean {
     for (const dir of EXCLUDE_DIRS) {
       if (entry === dir) return true;
-      if (rel === dir || rel.startsWith(dir + "/")) return true;
+      if (rel === dir || rel.startsWith(dir + '/')) return true;
     }
     return false;
   }
@@ -67,9 +67,9 @@ function collectFiles(root: string): string[] {
     for (const entry of readdirSync(dir)) {
       const full = join(dir, entry);
       const rel = relative(root, full);
-      if (rel.startsWith(".")) continue;
+      if (rel.startsWith('.')) continue;
       if (isExcluded(rel, entry)) continue;
-      if (entry === "routeTree.gen.ts") continue;
+      if (entry === 'routeTree.gen.ts') continue;
 
       try {
         const stat = statSync(full);
@@ -84,7 +84,7 @@ function collectFiles(root: string): string[] {
     }
   }
 
-  walk(join(root, "src"));
+  walk(join(root, 'src'));
   return files;
 }
 
@@ -92,11 +92,11 @@ function collectFiles(root: string): string[] {
 
 function* checkNoAnyCast(files: string[]): Generator<Violation> {
   for (const fpath of files) {
-    const lines = readFileSync(fpath, "utf-8").split("\n");
+    const lines = readFileSync(fpath, 'utf-8').split('\n');
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].includes("as any") && !lines[i].trim().startsWith("//")) {
+      if (lines[i].includes('as any') && !lines[i].trim().startsWith('//')) {
         yield {
-          check: "NO_ANY_CAST",
+          check: 'NO_ANY_CAST',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
           message: '"as any" type assertion — define proper types',
@@ -108,11 +108,11 @@ function* checkNoAnyCast(files: string[]): Generator<Violation> {
 
 function* checkNoTsIgnore(files: string[]): Generator<Violation> {
   for (const fpath of files) {
-    const lines = readFileSync(fpath, "utf-8").split("\n");
+    const lines = readFileSync(fpath, 'utf-8').split('\n');
     for (let i = 0; i < lines.length; i++) {
       if (/@ts-(ignore|expect-error)/.test(lines[i])) {
         yield {
-          check: "NO_TS_IGNORE",
+          check: 'NO_TS_IGNORE',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
           message: `@ts-ignore/@ts-expect-error — fix the type error instead`,
@@ -124,15 +124,18 @@ function* checkNoTsIgnore(files: string[]): Generator<Violation> {
 
 function* checkNoConsoleLog(files: string[]): Generator<Violation> {
   for (const fpath of files) {
-    if (fpath.includes("test") || fpath.includes("setup")) continue;
-    const lines = readFileSync(fpath, "utf-8").split("\n");
+    if (fpath.includes('test') || fpath.includes('setup')) continue;
+    const lines = readFileSync(fpath, 'utf-8').split('\n');
     for (let i = 0; i < lines.length; i++) {
-      if (/\bconsole\.log\b/.test(lines[i]) && !lines[i].trim().startsWith("//")) {
+      if (
+        /\bconsole\.log\b/.test(lines[i]) &&
+        !lines[i].trim().startsWith('//')
+      ) {
         yield {
-          check: "NO_CONSOLE_LOG",
+          check: 'NO_CONSOLE_LOG',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: "console.log — remove debug logging before commit",
+          message: 'console.log — remove debug logging before commit',
         };
       }
     }
@@ -141,14 +144,18 @@ function* checkNoConsoleLog(files: string[]): Generator<Violation> {
 
 function* checkNoWindowLocation(files: string[]): Generator<Violation> {
   for (const fpath of files) {
-    const lines = readFileSync(fpath, "utf-8").split("\n");
+    const lines = readFileSync(fpath, 'utf-8').split('\n');
     for (let i = 0; i < lines.length; i++) {
-      if (/window\.location\.href\s*=/.test(lines[i]) && !lines[i].trim().startsWith("//")) {
+      if (
+        /window\.location\.href\s*=/.test(lines[i]) &&
+        !lines[i].trim().startsWith('//')
+      ) {
         yield {
-          check: "NO_WINDOW_LOCATION",
+          check: 'NO_WINDOW_LOCATION',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: "window.location.href — use useNavigate() from TanStack Router",
+          message:
+            'window.location.href — use useNavigate() from TanStack Router',
         };
       }
     }
@@ -157,15 +164,16 @@ function* checkNoWindowLocation(files: string[]): Generator<Violation> {
 
 function* checkNoInlineNavigate(files: string[]): Generator<Violation> {
   for (const fpath of files) {
-    const text = readFileSync(fpath, "utf-8");
-    const lines = text.split("\n");
+    const text = readFileSync(fpath, 'utf-8');
+    const lines = text.split('\n');
     for (let i = 0; i < lines.length; i++) {
-      if (/<Navigate\s/.test(lines[i]) && !lines[i].trim().startsWith("//")) {
+      if (/<Navigate\s/.test(lines[i]) && !lines[i].trim().startsWith('//')) {
         yield {
-          check: "NO_INLINE_NAVIGATE",
+          check: 'NO_INLINE_NAVIGATE',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: "<Navigate> in component — use router beforeLoad guard instead",
+          message:
+            '<Navigate> in component — use router beforeLoad guard instead',
         };
       }
     }
@@ -175,19 +183,22 @@ function* checkNoInlineNavigate(files: string[]): Generator<Violation> {
 function* checkNoNpmYarn(files: string[]): Generator<Violation> {
   // Also check package.json scripts and docs
   const extraFiles = [
-    join(PROJECT_ROOT, "package.json"),
-    join(PROJECT_ROOT, "README.md"),
+    join(PROJECT_ROOT, 'package.json'),
+    join(PROJECT_ROOT, 'README.md'),
   ];
   for (const fpath of [...files, ...extraFiles]) {
     if (!existsSync(fpath)) continue;
-    const lines = readFileSync(fpath, "utf-8").split("\n");
+    const lines = readFileSync(fpath, 'utf-8').split('\n');
     for (let i = 0; i < lines.length; i++) {
-      if (/(npm\s+install|yarn\s+add)/.test(lines[i]) && !lines[i].trim().startsWith("//")) {
+      if (
+        /(npm\s+install|yarn\s+add)/.test(lines[i]) &&
+        !lines[i].trim().startsWith('//')
+      ) {
         yield {
-          check: "NO_NPM_YARN",
+          check: 'NO_NPM_YARN',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: "npm install / yarn add — use bun instead",
+          message: 'npm install / yarn add — use bun instead',
         };
       }
     }
@@ -196,17 +207,17 @@ function* checkNoNpmYarn(files: string[]): Generator<Violation> {
 
 function* checkNoDefaultExport(files: string[]): Generator<Violation> {
   const componentFiles = files.filter(
-    (f) => f.includes("components") || f.includes("routes") || f.includes("pages")
+    f => f.includes('components') || f.includes('routes') || f.includes('pages')
   );
   for (const fpath of componentFiles) {
-    const lines = readFileSync(fpath, "utf-8").split("\n");
+    const lines = readFileSync(fpath, 'utf-8').split('\n');
     for (let i = 0; i < lines.length; i++) {
       if (/^export default function/.test(lines[i].trim())) {
         yield {
-          check: "NO_DEFAULT_EXPORT",
+          check: 'NO_DEFAULT_EXPORT',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: "Default export on component — use named export",
+          message: 'Default export on component — use named export',
         };
       }
     }
@@ -215,9 +226,9 @@ function* checkNoDefaultExport(files: string[]): Generator<Violation> {
 
 function* checkApiDirectAxios(files: string[]): Generator<Violation> {
   for (const fpath of files) {
-    if (fpath.includes("lib/api") || fpath.includes("src/api/")) continue;
-    const text = readFileSync(fpath, "utf-8");
-    const lines = text.split("\n");
+    if (fpath.includes('lib/api') || fpath.includes('src/api/')) continue;
+    const text = readFileSync(fpath, 'utf-8');
+    const lines = text.split('\n');
 
     // Check for direct axios imports
     for (let i = 0; i < lines.length; i++) {
@@ -226,10 +237,10 @@ function* checkApiDirectAxios(files: string[]): Generator<Violation> {
         /from\s+['"]axios['"]/.test(lines[i])
       ) {
         yield {
-          check: "API_DIRECT_AXIOS",
+          check: 'API_DIRECT_AXIOS',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: "Direct axios import — use apiClient from @/lib/api",
+          message: 'Direct axios import — use apiClient from @/lib/api',
         };
       }
     }
@@ -238,19 +249,19 @@ function* checkApiDirectAxios(files: string[]): Generator<Violation> {
 
 function* checkNoUseStateForForms(files: string[]): Generator<Violation> {
   for (const fpath of files) {
-    if (!fpath.endsWith(".tsx")) continue;
-    const text = readFileSync(fpath, "utf-8");
+    if (!fpath.endsWith('.tsx')) continue;
+    const text = readFileSync(fpath, 'utf-8');
     if (!/<[Ff]orm[\s>]/.test(text)) continue;
     if (!/\buseState\b/.test(text)) continue;
     if (!/(value=|onChange=|checked=)/.test(text)) continue;
-    const lines = text.split("\n");
+    const lines = text.split('\n');
     for (let i = 0; i < lines.length; i++) {
-      if (/\buseState\b/.test(lines[i]) && !lines[i].trim().startsWith("//")) {
+      if (/\buseState\b/.test(lines[i]) && !lines[i].trim().startsWith('//')) {
         yield {
-          check: "NO_USE_STATE_FOR_FORMS",
+          check: 'NO_USE_STATE_FOR_FORMS',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: "useState for form state — use react-hook-form + zod",
+          message: 'useState for form state — use react-hook-form + zod',
         };
         break;
       }
@@ -261,26 +272,26 @@ function* checkNoUseStateForForms(files: string[]): Generator<Violation> {
 function* checkNoInlineFetch(files: string[]): Generator<Violation> {
   for (const fpath of files) {
     if (
-      fpath.includes("src/hooks/") ||
-      fpath.includes("src/api/") ||
-      fpath.includes("src/lib/api")
+      fpath.includes('src/hooks/') ||
+      fpath.includes('src/api/') ||
+      fpath.includes('src/lib/api')
     ) {
       continue;
     }
-    const text = readFileSync(fpath, "utf-8");
-    const lines = text.split("\n");
+    const text = readFileSync(fpath, 'utf-8');
+    const lines = text.split('\n');
     const hasRawFetch = /\bfetch\s*\(|\baxios\./.test(text);
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      if (line.trim().startsWith("//")) continue;
+      if (line.trim().startsWith('//')) continue;
       const isRaw = /\bfetch\s*\(|\baxios\./.test(line);
       const isQuery = /\buseQuery\s*\(|\buseMutation\s*\(/.test(line);
       if (isRaw || (isQuery && hasRawFetch)) {
         yield {
-          check: "NO_INLINE_FETCH",
+          check: 'NO_INLINE_FETCH',
           filepath: relative(PROJECT_ROOT, fpath),
           line: i + 1,
-          message: "inline API call — move to src/hooks or src/lib/api",
+          message: 'inline API call — move to src/hooks or src/lib/api',
         };
       }
     }
@@ -289,13 +300,13 @@ function* checkNoInlineFetch(files: string[]): Generator<Violation> {
 
 function* checkComponentSize(files: string[]): Generator<Violation> {
   const isComponentFile = (fpath: string) =>
-    fpath.endsWith(".tsx") && /(components|routes|pages|forms)/.test(fpath);
+    fpath.endsWith('.tsx') && /(components|routes|pages|forms)/.test(fpath);
   for (const fpath of files) {
     if (!isComponentFile(fpath)) continue;
-    const lines = readFileSync(fpath, "utf-8").split("\n");
+    const lines = readFileSync(fpath, 'utf-8').split('\n');
     if (lines.length > 300) {
       yield {
-        check: "COMPONENT_SIZE",
+        check: 'COMPONENT_SIZE',
         filepath: relative(PROJECT_ROOT, fpath),
         line: 301,
         message: `component file exceeds 300 lines (${lines.length}) — split into smaller components`,
@@ -330,9 +341,9 @@ function main(): number {
   const { values } = parseArgs({
     args: argv.slice(2),
     options: {
-      json: { type: "boolean", default: false },
-      check: { type: "string" },
-      list: { type: "boolean", default: false },
+      json: { type: 'boolean', default: false },
+      check: { type: 'string' },
+      list: { type: 'boolean', default: false },
     },
     strict: false,
   });
@@ -366,7 +377,7 @@ function main(): number {
     console.log(
       JSON.stringify(
         {
-          violations: violations.map((v) => ({
+          violations: violations.map(v => ({
             check: v.check,
             file: v.filepath,
             line: v.line,
@@ -380,7 +391,7 @@ function main(): number {
     );
   } else {
     if (violations.length === 0) {
-      console.log("All convention checks passed.");
+      console.log('All convention checks passed.');
     }
     for (const v of violations) {
       console.log(`[${v.check}] ${v.filepath}:${v.line} — ${v.message}`);
@@ -388,7 +399,7 @@ function main(): number {
     console.log(
       violations.length
         ? `\n${violations.length} violation(s) found.`
-        : "\n0 violations."
+        : '\n0 violations.'
     );
   }
 

@@ -3,7 +3,8 @@ import { MagicLinkForm } from '@/forms/auth/MagicLinkForm';
 import { useStore } from '@/lib/store';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 
-// eslint-disable-next-line react-doctor/only-export-components
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/auth/magic-link')({
   beforeLoad: () => {
     if (useStore.getState().isAuthenticated) throw redirect({ to: '/todos' });

@@ -51,18 +51,40 @@ declare global {
   }
 }
 
-// Environment variables with defaults
-const getEnvVar = (key: string, defaultValue: string = ''): string => {
-  if (typeof window !== 'undefined') {
-    // Browser environment - check for runtime config
-    return window.__APP_CONFIG__?.[key] || import.meta.env[key] || defaultValue;
-  }
-  return import.meta.env[key] || defaultValue;
+// Enumerate public build settings so dynamic access cannot serialize the full environment.
+const buildSettings = {
+  VITE_MODE: import.meta.env.VITE_MODE,
+  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+  VITE_API_TIMEOUT: import.meta.env.VITE_API_TIMEOUT,
+  VITE_API_RETRIES: import.meta.env.VITE_API_RETRIES,
+  VITE_AUTH_STORAGE_KEY: import.meta.env.VITE_AUTH_STORAGE_KEY,
+  VITE_AUTH_REFRESH_STORAGE_KEY: import.meta.env.VITE_AUTH_REFRESH_STORAGE_KEY,
+  VITE_AUTH_SESSION_SECONDS: import.meta.env.VITE_AUTH_SESSION_SECONDS,
+  VITE_ENABLE_MAGIC_LINK: import.meta.env.VITE_ENABLE_MAGIC_LINK,
+  VITE_ENABLE_TODOS: import.meta.env.VITE_ENABLE_TODOS,
+  VITE_ENABLE_NOTIFICATIONS: import.meta.env.VITE_ENABLE_NOTIFICATIONS,
+  VITE_ENABLE_ANALYTICS: import.meta.env.VITE_ENABLE_ANALYTICS,
+  VITE_ENABLE_DARK_MODE: import.meta.env.VITE_ENABLE_DARK_MODE,
+  VITE_DJANGO_CSRF_COOKIE_NAME: import.meta.env.VITE_DJANGO_CSRF_COOKIE_NAME,
+  VITE_DJANGO_STATIC_URL: import.meta.env.VITE_DJANGO_STATIC_URL,
+  VITE_DJANGO_MEDIA_URL: import.meta.env.VITE_DJANGO_MEDIA_URL,
+  VITE_DJANGO_API_PREFIX: import.meta.env.VITE_DJANGO_API_PREFIX,
 };
 
-const getEnvBool = (key: string, defaultValue: boolean = false): boolean => {
+type PublicSetting = keyof typeof buildSettings;
+
+const getEnvVar = (key: PublicSetting, defaultValue: string = ''): string => {
+  const runtimeValue =
+    typeof window !== 'undefined' ? window.__APP_CONFIG__?.[key] : undefined;
+  return runtimeValue || buildSettings[key] || defaultValue;
+};
+
+const getEnvBool = (
+  key: PublicSetting,
+  defaultValue: boolean = false
+): boolean => {
   const value = getEnvVar(key);
-  return value === 'true' || value === '1' || defaultValue;
+  return value === '' ? defaultValue : value === 'true' || value === '1';
 };
 
 // Determine if we're running in Django SPA mode
@@ -82,9 +104,12 @@ export const config: AppConfig = {
   },
 
   auth: {
-    tokenKey: getEnvVar('VITE_AUTH_TOKEN_KEY', 'access_token'),
-    refreshTokenKey: getEnvVar('VITE_AUTH_REFRESH_TOKEN_KEY', 'refresh_token'),
-    tokenExpiry: parseInt(getEnvVar('VITE_AUTH_TOKEN_EXPIRY', '3600')), // 1 hour
+    tokenKey: getEnvVar('VITE_AUTH_STORAGE_KEY', 'access_token'),
+    refreshTokenKey: getEnvVar(
+      'VITE_AUTH_REFRESH_STORAGE_KEY',
+      'refresh_token'
+    ),
+    tokenExpiry: parseInt(getEnvVar('VITE_AUTH_SESSION_SECONDS', '3600')), // 1 hour
     enableMagicLink: getEnvBool('VITE_ENABLE_MAGIC_LINK', true),
   },
 
@@ -104,7 +129,7 @@ export const config: AppConfig = {
 
   ...(isDjangoSPAMode && {
     django: {
-      csrfTokenName: getEnvVar('VITE_DJANGO_CSRF_TOKEN_NAME', 'csrftoken'),
+      csrfTokenName: getEnvVar('VITE_DJANGO_CSRF_COOKIE_NAME', 'csrftoken'),
       staticUrl: getEnvVar('VITE_DJANGO_STATIC_URL', '/static/'),
       mediaUrl: getEnvVar('VITE_DJANGO_MEDIA_URL', '/media/'),
       apiPrefix: getEnvVar('VITE_DJANGO_API_PREFIX', '/api'),
@@ -145,4 +170,3 @@ void isProduction;
 void isTest;
 void isDjangoSPA;
 void isStandalone;
-

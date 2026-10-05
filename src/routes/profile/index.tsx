@@ -21,6 +21,8 @@ import { Calendar, Edit, Mail, MapPin, Settings } from 'lucide-react';
 
 const TODAY_FORMATTED = formatDate(new Date());
 
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/profile/')({
   component: ProfilePage,
 });

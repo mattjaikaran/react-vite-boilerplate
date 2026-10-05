@@ -46,7 +46,6 @@ interface TodoFormProps {
 }
 
 export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
-
   const createTodoMutation = useCreateTodo();
   const updateTodoMutation = useUpdateTodo();
 
@@ -94,7 +93,11 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
   };
 
   const removeTag = (tagToRemove: string) => {
-    form.setValue('tags', tags.filter(tag => tag !== tagToRemove), { shouldDirty: true });
+    form.setValue(
+      'tags',
+      tags.filter(tag => tag !== tagToRemove),
+      { shouldDirty: true }
+    );
   };
 
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
@@ -194,9 +197,10 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Tags</Label>
+            <Label htmlFor="todo-tag-input">Tags</Label>
             <div className="flex gap-2">
               <Input
+                id="todo-tag-input"
                 placeholder="Add a tag"
                 value={tagInput}
                 {...form.register('tagInput')}
@@ -207,6 +211,7 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
                 variant="outline"
                 size="icon"
                 onClick={addTag}
+                aria-label="Add tag"
                 disabled={!tagInput.trim()}
               >
                 <Plus className="size-4" />
@@ -223,6 +228,7 @@ export function TodoForm({ todo, onSuccess, onCancel }: TodoFormProps) {
                     <button
                       type="button"
                       onClick={() => removeTag(tag)}
+                      aria-label={`Remove tag ${tag}`}
                       className="hover:text-destructive"
                     >
                       <X className="size-3" />

@@ -5,7 +5,7 @@
 	shadcn-common shadcn-forms shadcn-data shadcn-navigation shadcn-feedback shadcn-layout shadcn-all shadcn-list shadcn-update \
 	django-prep django-build django-types django-urls django-settings django-all api-schema api-types api-client cors-setup \
 	dev-open dev-debug storybook-init storybook storybook-build component hook security-audit performance-test \
-	update-all reset-project git-setup git-hooks env-dev env-prod env-all help-shadcn help-django help-utils help-all
+	update-all reset-project git-setup git-hooks env-dev env-prod env-all help-shadcn help-django help-utils help-all doctor
 
 # Default target
 help: ## Show this help message
@@ -44,15 +44,15 @@ test-coverage: ## Run tests with coverage
 	bun run test:coverage
 
 # Code Quality Commands
-lint: ## Run ESLint
-	@echo "Running ESLint..."
+lint: ## Run Oxlint
+	@echo "Running Oxlint..."
 	bun run lint
 
-lint-fix: ## Fix ESLint issues
-	@echo "Fixing ESLint issues..."
+lint-fix: ## Fix Oxlint issues
+	@echo "Fixing Oxlint issues..."
 	bun run lint:fix
 
-format: ## Format code with Prettier
+format: ## Format code with Oxfmt
 	@echo "Formatting code..."
 	bun run format
 
@@ -63,6 +63,9 @@ format-check: ## Check code formatting
 type-check: ## Run TypeScript type checking
 	@echo "Running TypeScript type checking..."
 	bun run type-check
+
+doctor: ## Scan React health and fail on errors
+	bun run doctor
 
 # Setup Commands
 setup: install ## Full project setup

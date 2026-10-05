@@ -2,7 +2,8 @@ import { TodoForm } from '@/forms/todos/TodoForm';
 // import { useAuth } from '@/lib/store';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
-// eslint-disable-next-line react-doctor/only-export-components
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/todos/create')({
   component: CreateTodoPage,
 });

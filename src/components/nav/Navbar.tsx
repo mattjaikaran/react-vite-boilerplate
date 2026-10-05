@@ -39,13 +39,25 @@ export function Navbar({ className }: NavbarProps) {
   const authenticatedNavigation = [{ name: 'Todos', href: '/todos' }];
 
   return (
-    <nav className={`border-b bg-background ${className}`}>
+    <nav
+      className={`border-b bg-background ${className ?? ''}`}
+      aria-label="Main navigation"
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex items-center">
             <Link to="/" className="flex flex-shrink-0 items-center">
-              <span className="text-xl font-bold text-primary">
-                React Vite Boilerplate
+              <span className="text-lg font-semibold tracking-tight text-foreground">
+                <span
+                  className="mr-2 inline-flex size-7 items-center justify-center rounded-lg bg-primary text-sm text-primary-foreground"
+                  aria-hidden="true"
+                >
+                  m
+                </span>
+                mattstack
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  / studio
+                </span>
               </span>
             </Link>
           </div>
@@ -131,6 +143,11 @@ export function Navbar({ className }: NavbarProps) {
               variant="ghost"
               size="icon"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={
+                isMobileMenuOpen ? 'Close navigation' : 'Open navigation'
+              }
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
             >
               {isMobileMenuOpen ? (
                 <X className="size-6" />
@@ -144,7 +161,7 @@ export function Navbar({ className }: NavbarProps) {
         {/* Mobile Navigation - shown only on mobile screens */}
 
         {isMobileMenuOpen && isMobile && (
-          <div className="md:hidden">
+          <div id="mobile-navigation" className="md:hidden">
             <div className="gap-y-1 px-2 pb-3 pt-2 sm:px-3">
               {navigation.map(item => (
                 <Link

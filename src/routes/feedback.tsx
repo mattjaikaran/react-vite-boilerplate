@@ -13,7 +13,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { createFileRoute } from '@tanstack/react-router';
 import { Bug, Lightbulb, MessageSquare, Star } from 'lucide-react';
 
-// eslint-disable-next-line react-doctor/only-export-components
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/feedback')({
   component: FeedbackPage,
 });

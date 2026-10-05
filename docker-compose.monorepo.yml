@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 # Docker Compose for Django + React Monorepo
 # This configuration is designed to work alongside the Django backend
@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - .:/app
       - /app/node_modules
@@ -43,7 +43,7 @@ services:
       context: ${BACKEND_PATH:-../backend}
       dockerfile: ${BACKEND_DOCKERFILE:-Dockerfile}
     ports:
-      - "8000:8000"
+      - '8000:8000'
     volumes:
       - ${BACKEND_PATH:-../backend}:/app
     environment:
@@ -61,7 +61,7 @@ services:
   db:
     image: postgres:16-alpine
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -69,7 +69,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -80,7 +80,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     networks:
@@ -90,7 +90,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - '80:80'
     volumes:
       - ./nginx/monorepo.conf:/etc/nginx/nginx.conf:ro
     depends_on:

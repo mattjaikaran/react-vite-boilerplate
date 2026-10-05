@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -6,36 +5,48 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { useSetTheme, useTheme } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { Globe, Palette, Save } from 'lucide-react';
+import { Palette } from 'lucide-react';
+
+const themes = ['light', 'dark', 'system'] as const;
 
 export function AppearanceTab() {
+  const selectedTheme = useTheme();
+  const setTheme = useSetTheme();
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Palette className="size-5" />
+          <Palette className="size-5" aria-hidden="true" />
           Appearance
         </CardTitle>
-        <CardDescription>Customize how the app looks on your device.</CardDescription>
+        <CardDescription>
+          Customize how the app looks on your device.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="gap-y-6">
-        <div>
-          <Label className="text-base">Theme</Label>
-          <p className="mb-4 text-sm text-muted-foreground">Select your preferred color scheme.</p>
-          <div className="grid grid-cols-3 gap-4">
-            {['light', 'dark', 'system'].map(theme => (
+      <CardContent>
+        <fieldset>
+          <legend className="text-base font-medium">Theme</legend>
+          <p className="mb-4 text-sm text-muted-foreground">
+            System follows your device's color scheme. Changes are saved
+            automatically on this device.
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            {themes.map(theme => (
               <button
                 key={theme}
                 type="button"
+                aria-pressed={selectedTheme === theme}
+                onClick={() => setTheme(theme)}
                 className={cn(
-                  'flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors',
-                  'hover:border-primary/50',
-                  'focus:outline-none focus:ring-2 focus:ring-primary'
+                  'flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-colors hover:border-primary/50',
+                  selectedTheme === theme ? 'border-primary' : 'border-border'
                 )}
               >
-                <div
+                <span
+                  aria-hidden="true"
                   className={cn(
                     'h-20 w-full rounded-md',
                     theme === 'light'
@@ -49,26 +60,7 @@ export function AppearanceTab() {
               </button>
             ))}
           </div>
-        </div>
-
-        <div>
-          <Label className="flex items-center gap-2 text-base">
-            <Globe className="size-4" />
-            Language
-          </Label>
-          <p className="mb-4 text-sm text-muted-foreground">Select your preferred language.</p>
-          <select className="w-full rounded-md border bg-background p-2">
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-          </select>
-        </div>
-
-        <Button className="gap-2">
-          <Save className="size-4" />
-          Save Preferences
-        </Button>
+        </fieldset>
       </CardContent>
     </Card>
   );

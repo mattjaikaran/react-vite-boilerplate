@@ -2,7 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
-// eslint-disable-next-line react-doctor/only-export-components
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/faq')({
   component: FAQPage,
 });

@@ -7,7 +7,12 @@ import type {
   RegisterCredentials,
   User,
 } from '@/types';
-import { normalizeAuthResponse, normalizeTokens, normalizeUser, toDjangoRegisterCredentials } from '@/types/auth';
+import {
+  normalizeAuthResponse,
+  normalizeTokens,
+  normalizeUser,
+  toDjangoRegisterCredentials,
+} from '@/types/auth';
 
 /**
  * Determine auth endpoint paths based on backend configuration
@@ -104,7 +109,10 @@ export const authApi = {
 
     if ('token' in data) {
       // Normalize Django JWT format
-      const normalized = normalizeTokens({ token: data.token, refresh: data.refresh });
+      const normalized = normalizeTokens({
+        token: data.token,
+        refresh: data.refresh,
+      });
       return { accessToken: normalized.accessToken };
     }
     return data;
@@ -134,7 +142,9 @@ export const authApi = {
     const data = handleApiResponse(response);
     // Normalize if the response is in Django snake_case format
     if ('first_name' in data) {
-      return normalizeUser(data as unknown as Parameters<typeof normalizeUser>[0]);
+      return normalizeUser(
+        data as unknown as Parameters<typeof normalizeUser>[0]
+      );
     }
     return data;
   },
@@ -145,14 +155,11 @@ export const authApi = {
   updateProfile: async (updates: Partial<User>): Promise<User> => {
     const paths = getAuthPaths();
 
-    const response = await apiClient.patch<User>(
-      paths.profile,
-      {
-        firstName: updates.firstName,
-        lastName: updates.lastName,
-        email: updates.email,
-      }
-    );
+    const response = await apiClient.patch<User>(paths.profile, {
+      firstName: updates.firstName,
+      lastName: updates.lastName,
+      email: updates.email,
+    });
     return handleApiResponse(response);
   },
 

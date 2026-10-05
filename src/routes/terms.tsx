@@ -2,7 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 
 const LAST_UPDATED = new Date().toLocaleDateString();
 
-// eslint-disable-next-line react-doctor/only-export-components
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/terms')({
   component: TermsPage,
 });

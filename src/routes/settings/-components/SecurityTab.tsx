@@ -16,7 +16,12 @@ export type PasswordFormState = {
   confirmPassword: string;
 };
 
-export function SecurityTab({ form, setForm, onSubmit, isPending }: {
+export function SecurityTab({
+  form,
+  setForm,
+  onSubmit,
+  isPending,
+}: {
   form: PasswordFormState;
   setForm: React.Dispatch<React.SetStateAction<PasswordFormState>>;
   onSubmit: (e: React.FormEvent) => void;
@@ -30,7 +35,9 @@ export function SecurityTab({ form, setForm, onSubmit, isPending }: {
             <Key className="size-5" />
             Change Password
           </CardTitle>
-          <CardDescription>Update your password to keep your account secure.</CardDescription>
+          <CardDescription>
+            Update your password to keep your account secure.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="gap-y-4">
@@ -40,7 +47,12 @@ export function SecurityTab({ form, setForm, onSubmit, isPending }: {
                 id="currentPassword"
                 type="password"
                 value={form.currentPassword}
-                onChange={e => setForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                onChange={e =>
+                  setForm(prev => ({
+                    ...prev,
+                    currentPassword: e.target.value,
+                  }))
+                }
               />
             </div>
             <div className="gap-y-2">
@@ -49,7 +61,9 @@ export function SecurityTab({ form, setForm, onSubmit, isPending }: {
                 id="newPassword"
                 type="password"
                 value={form.newPassword}
-                onChange={e => setForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                onChange={e =>
+                  setForm(prev => ({ ...prev, newPassword: e.target.value }))
+                }
               />
             </div>
             <div className="gap-y-2">
@@ -58,11 +72,20 @@ export function SecurityTab({ form, setForm, onSubmit, isPending }: {
                 id="confirmPassword"
                 type="password"
                 value={form.confirmPassword}
-                onChange={e => setForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                onChange={e =>
+                  setForm(prev => ({
+                    ...prev,
+                    confirmPassword: e.target.value,
+                  }))
+                }
               />
             </div>
             <Button type="submit" disabled={isPending} className="gap-2">
-              {isPending ? <Loader2 className="size-4 animate-spin" /> : <Key className="size-4" />}
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Key className="size-4" />
+              )}
               Update Password
             </Button>
           </form>
@@ -75,13 +98,17 @@ export function SecurityTab({ form, setForm, onSubmit, isPending }: {
             <Shield className="size-5" />
             Two-Factor Authentication
           </CardTitle>
-          <CardDescription>Add an extra layer of security to your account.</CardDescription>
+          <CardDescription>
+            Add an extra layer of security to your account.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Status: Not enabled</p>
-              <p className="text-sm text-muted-foreground">Protect your account with 2FA</p>
+              <p className="text-sm text-muted-foreground">
+                Protect your account with 2FA
+              </p>
             </div>
             <Button variant="outline">Enable 2FA</Button>
           </div>

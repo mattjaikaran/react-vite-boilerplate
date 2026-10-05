@@ -27,7 +27,6 @@ export const useDebounce = <T>(value: T, delay: number = 500): T => {
 /**
  * Hook to debounce a callback function
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 // react-doctor-disable-next-line deslop/unused-export
 export const useDebouncedCallback = <T extends (...args: any[]) => unknown>(
   callback: T,
@@ -70,17 +69,10 @@ export const useDebounceWithLoading = <T>(
   delay: number = 500
 ): { debouncedValue: T; isDebouncing: boolean } => {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  const pendingRef = useRef(false);
-
-  // Track if value has changed but debounce hasn't fired yet
-  if (debouncedValue !== value) {
-    pendingRef.current = true;
-  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedValue(value);
-      pendingRef.current = false;
     }, delay);
 
     return () => {
@@ -88,5 +80,5 @@ export const useDebounceWithLoading = <T>(
     };
   }, [value, delay]);
 
-  return { debouncedValue, isDebouncing: pendingRef.current };
+  return { debouncedValue, isDebouncing: !Object.is(debouncedValue, value) };
 };

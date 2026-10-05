@@ -1,4 +1,8 @@
-import { DataTableToolbar, DataTablePagination, type ServerPagination } from './DataTableControls';
+import {
+  DataTableToolbar,
+  DataTablePagination,
+  type ServerPagination,
+} from './DataTableControls';
 import { SkeletonTable } from '@/components/ui/skeleton';
 import {
   Table,
@@ -23,7 +27,6 @@ import {
   VisibilityState,
 } from '@tanstack/react-table';
 import { useReducer } from 'react';
-
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -77,7 +80,6 @@ function tableReducer(state: TableState, action: TableAction): TableState {
   }
 }
 
-
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -102,26 +104,56 @@ export function DataTable<TData, TValue>({
 
   const isServerSide = !!serverPagination;
   const pagination: PaginationState = isServerSide
-    ? { pageIndex: serverPagination.page - 1, pageSize: serverPagination.pageSize }
+    ? {
+        pageIndex: serverPagination.page - 1,
+        pageSize: serverPagination.pageSize,
+      }
     : { pageIndex: 0, pageSize };
 
   const handlePaginationChange: OnChangeFn<PaginationState> = updater => {
     if (!onPaginationChange) return;
-    const newState = typeof updater === 'function' ? updater(pagination) : updater;
+    const newState =
+      typeof updater === 'function' ? updater(pagination) : updater;
     onPaginationChange(newState.pageIndex + 1, newState.pageSize);
   };
 
   const table = useReactTable({
     data,
     columns,
-    onSortingChange: sorting => dispatch({ type: 'set_sorting', sorting: typeof sorting === 'function' ? sorting(tableState.sorting) : sorting }),
-    onColumnFiltersChange: filters => dispatch({ type: 'set_column_filters', filters: typeof filters === 'function' ? filters(tableState.columnFilters) : filters }),
+    onSortingChange: sorting =>
+      dispatch({
+        type: 'set_sorting',
+        sorting:
+          typeof sorting === 'function' ? sorting(tableState.sorting) : sorting,
+      }),
+    onColumnFiltersChange: filters =>
+      dispatch({
+        type: 'set_column_filters',
+        filters:
+          typeof filters === 'function'
+            ? filters(tableState.columnFilters)
+            : filters,
+      }),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: isServerSide ? undefined : getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: isServerSide ? undefined : getFilteredRowModel(),
-    onColumnVisibilityChange: visibility => dispatch({ type: 'set_column_visibility', visibility: typeof visibility === 'function' ? visibility(tableState.columnVisibility) : visibility }),
-    onRowSelectionChange: selection => dispatch({ type: 'set_row_selection', selection: typeof selection === 'function' ? selection(tableState.rowSelection) : selection }),
+    onColumnVisibilityChange: visibility =>
+      dispatch({
+        type: 'set_column_visibility',
+        visibility:
+          typeof visibility === 'function'
+            ? visibility(tableState.columnVisibility)
+            : visibility,
+      }),
+    onRowSelectionChange: selection =>
+      dispatch({
+        type: 'set_row_selection',
+        selection:
+          typeof selection === 'function'
+            ? selection(tableState.rowSelection)
+            : selection,
+      }),
     ...(isServerSide
       ? {
           manualPagination: true,
@@ -148,7 +180,9 @@ export function DataTable<TData, TValue>({
   const currentPage = isServerSide
     ? serverPagination.page
     : table.getState().pagination.pageIndex + 1;
-  const totalPages = isServerSide ? serverPagination.totalPages : table.getPageCount();
+  const totalPages = isServerSide
+    ? serverPagination.totalPages
+    : table.getPageCount();
   const totalRows = isServerSide
     ? serverPagination.total
     : table.getFilteredRowModel().rows.length;
@@ -176,7 +210,10 @@ export function DataTable<TData, TValue>({
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -185,17 +222,26 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
                   {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>

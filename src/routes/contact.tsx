@@ -6,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { createFileRoute } from '@tanstack/react-router';
 import { Github, Linkedin, Mail, Twitter } from 'lucide-react';
 
-// eslint-disable-next-line react-doctor/only-export-components
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/contact')({
   component: ContactPage,
 });
@@ -94,6 +95,7 @@ export function ContactPage() {
                       href="https://github.com"
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label="GitHub (opens in a new tab)"
                       className="text-muted-foreground transition-colors hover:text-primary"
                     >
                       <Github className="size-5" />
@@ -102,6 +104,7 @@ export function ContactPage() {
                       href="https://twitter.com"
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label="Twitter (opens in a new tab)"
                       className="text-muted-foreground transition-colors hover:text-primary"
                     >
                       <Twitter className="size-5" />
@@ -110,6 +113,7 @@ export function ContactPage() {
                       href="https://linkedin.com"
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label="LinkedIn (opens in a new tab)"
                       className="text-muted-foreground transition-colors hover:text-primary"
                     >
                       <Linkedin className="size-5" />

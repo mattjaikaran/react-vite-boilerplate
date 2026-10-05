@@ -48,7 +48,9 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 ### Developer Experience
 
 - **Hot Module Replacement** - Instant feedback during development
-- **ESLint & Prettier** - Code quality and formatting
+- **Oxlint & Oxfmt** - Native linting and formatting, with built-in React Hooks checks
+- **React Doctor** - React health diagnostics with blocking errors and telemetry disabled
+- **Editable design system** - Paper/ink/cobalt themes and a product-oriented starter; see [DESIGN.md](./DESIGN.md)
 - **Vitest** - Fast unit testing framework
 - **Comprehensive Utils** - 100+ utility functions organized by category
 - **Type Safety** - Modular type definitions
@@ -264,7 +266,11 @@ You can also run commands directly with Bun:
 bun run dev          # Start development server
 bun run build        # Build for production
 bun run preview      # Preview production build
-bun run lint         # Run ESLint
+bun run lint         # Run Oxlint
+bun run lint:strict  # Fail on lint warnings
+bun run format       # Format with Oxfmt
+bun run format:check # Check formatting
+bun run doctor       # Scan React health; fail on errors
 bun run test         # Run tests
 ```
 
@@ -287,8 +293,9 @@ VITE_API_BASE_URL=http://localhost:8000/api
 VITE_API_TIMEOUT=10000
 
 # Authentication
-VITE_AUTH_TOKEN_KEY=auth_token
-VITE_REFRESH_TOKEN_KEY=refresh_token
+# Public storage key names, not token values
+VITE_AUTH_STORAGE_KEY=access_token
+VITE_AUTH_REFRESH_STORAGE_KEY=refresh_token
 
 # Environment
 VITE_APP_ENV=development

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-// eslint-disable-next-line react-doctor/only-export-components
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/about')({
   component: AboutPage,
 });
@@ -36,7 +37,7 @@ export function AboutPage() {
                 <ul className="space-y-1 text-sm text-muted-foreground">
                   <li>• Hot module replacement with Vite</li>
                   <li>• TypeScript for type safety</li>
-                  <li>• ESLint and Prettier for code quality</li>
+                  <li>• Oxlint, Oxfmt, and React Doctor for code quality</li>
                   <li>• VS Code settings and extensions</li>
                 </ul>
               </div>

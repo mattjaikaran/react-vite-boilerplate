@@ -181,7 +181,7 @@ Create a `.env.production` file:
 ```env
 VITE_MODE=django-spa
 VITE_API_BASE_URL=/api/v1
-VITE_DJANGO_CSRF_TOKEN_NAME=csrftoken
+VITE_DJANGO_CSRF_COOKIE_NAME=csrftoken
 VITE_DJANGO_STATIC_URL=/static/
 VITE_DJANGO_MEDIA_URL=/media/
 VITE_DJANGO_API_PREFIX=/api/v1

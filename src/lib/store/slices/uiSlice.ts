@@ -49,8 +49,11 @@ export const createUISlice: StateCreator<UISlice> = (set, get) => ({
 
   toggleTheme: () => {
     const { theme, setTheme } = get();
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
+    const isDark =
+      theme === 'dark' ||
+      (theme === 'system' &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setTheme(isDark ? 'light' : 'dark');
   },
 
   setSidebarOpen: (sidebarOpen: boolean) => {

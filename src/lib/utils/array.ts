@@ -80,11 +80,13 @@ export function sample<T>(array: T[], count = 1): T[] {
 }
 
 export function intersection<T>(array1: T[], array2: T[]): T[] {
-  return array1.filter(item => array2.includes(item));
+  const members = new Set(array2);
+  return array1.filter(item => members.has(item));
 }
 
 export function difference<T>(array1: T[], array2: T[]): T[] {
-  return array1.filter(item => !array2.includes(item));
+  const members = new Set(array2);
+  return array1.filter(item => !members.has(item));
 }
 
 export function union<T>(array1: T[], array2: T[]): T[] {

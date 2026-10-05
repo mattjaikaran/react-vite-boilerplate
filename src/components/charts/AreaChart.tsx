@@ -78,7 +78,6 @@ export function AreaChart({
   const id = useId();
   const gradientId = `area-gradient-${id.replace(/:/g, '')}`;
 
-
   if (data.length === 0) {
     return (
       <div

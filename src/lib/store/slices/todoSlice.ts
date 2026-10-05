@@ -128,7 +128,8 @@ export const createTodoSlice: StateCreator<TodoSlice> = (set, get) => ({
         });
       } catch (error) {
         set({
-          error: error instanceof Error ? error.message : 'Failed to toggle todo',
+          error:
+            error instanceof Error ? error.message : 'Failed to toggle todo',
         });
       }
     }

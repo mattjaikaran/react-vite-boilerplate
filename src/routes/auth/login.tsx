@@ -4,7 +4,8 @@ import { LoginForm } from '@/forms/auth/LoginForm';
 import { useStore } from '@/lib/store';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 
-// eslint-disable-next-line react-doctor/only-export-components
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/auth/login')({
   beforeLoad: () => {
     if (useStore.getState().isAuthenticated) throw redirect({ to: '/todos' });
@@ -25,7 +26,9 @@ export function LoginPage() {
             </CardHeader>
             <CardContent>
               <LoginForm
-                onSuccess={() => { void navigate({ to: '/todos' }); }}
+                onSuccess={() => {
+                  void navigate({ to: '/todos' });
+                }}
                 onSwitchToRegister={() => {
                   void navigate({ to: '/auth/register' });
                 }}

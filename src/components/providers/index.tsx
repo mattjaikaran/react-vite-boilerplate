@@ -15,4 +15,3 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return <QueryProvider>{children}</QueryProvider>;
 }
-

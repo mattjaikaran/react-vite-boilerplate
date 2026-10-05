@@ -6,15 +6,20 @@
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { useChangePassword, useLocalStorage, useUpdateProfile } from '@/hooks';
 import { useAuth } from '@/lib/store';
-import { cn, formatDateTime } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { Bell, Palette, Shield, User } from 'lucide-react';
 import { useState } from 'react';
 import { AppearanceTab } from './-components/AppearanceTab';
-import { NotificationsTab, type NotificationsState } from './-components/NotificationsTab';
+import {
+  NotificationsTab,
+  type NotificationsState,
+} from './-components/NotificationsTab';
 import { ProfileTab, type ProfileFormState } from './-components/ProfileTab';
 import { SecurityTab, type PasswordFormState } from './-components/SecurityTab';
 
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/settings/')({
   component: SettingsPage,
 });
@@ -29,11 +34,13 @@ const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
 ];
 
 function SettingsPage() {
-  const [activeTab, setActiveTab] = useLocalStorage<SettingsTab>('settings-tab', 'profile');
+  const [activeTab, setActiveTab] = useLocalStorage<SettingsTab>(
+    'settings-tab',
+    'profile'
+  );
   const { user } = useAuth();
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
-  const lastSaved = formatDateTime(new Date());
 
   const [profileForm, setProfileForm] = useState<ProfileFormState>({
     firstName: user?.firstName || '',
@@ -47,12 +54,15 @@ function SettingsPage() {
     confirmPassword: '',
   });
 
-  const [notifications, setNotifications] = useState<NotificationsState>({
-    emailNotifications: true,
-    pushNotifications: true,
-    weeklyDigest: false,
-    taskReminders: true,
-  });
+  const [notifications, setNotifications] = useLocalStorage<NotificationsState>(
+    'notification-preferences',
+    {
+      emailNotifications: true,
+      pushNotifications: true,
+      weeklyDigest: false,
+      taskReminders: true,
+    }
+  );
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,8 +83,9 @@ function SettingsPage() {
       <div className="gap-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">Manage your account settings and preferences.</p>
-          <p className="text-xs text-muted-foreground">Last saved: {lastSaved}</p>
+          <p className="text-muted-foreground">
+            Manage your account settings and preferences.
+          </p>
         </div>
 
         <div className="flex flex-col gap-6 lg:flex-row">

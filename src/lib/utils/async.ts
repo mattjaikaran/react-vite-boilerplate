@@ -108,7 +108,6 @@ export async function waterfall<T>(
   return result as T;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AsyncFunction = (...args: any[]) => Promise<unknown>;
 
 export function debounceAsync<T extends AsyncFunction>(fn: T, wait: number): T {

@@ -60,17 +60,20 @@ export function Footer({ className }: FooterProps) {
   };
 
   return (
-    <footer className={`border-t bg-background ${className} ${connectionClass}`} data-theme={themeHint}>
+    <footer
+      className={`border-t bg-background ${className ?? ''} ${connectionClass}`}
+      data-theme={themeHint}
+    >
       <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="gap-y-8 xl:col-span-1">
             <div>
-              <span className="text-2xl font-bold text-primary">
-                React Vite Boilerplate
+              <span className="text-xl font-semibold tracking-tight text-foreground">
+                mattstack / studio
               </span>
               <p className="mt-2 text-sm text-muted-foreground">
-                A modern, scalable React application boilerplate built with
-                Vite, TypeScript, and the latest tools.
+                A considered starting point for your next idea. Built with
+                React, TypeScript, and room to make it yours.
               </p>
             </div>
             <div className="flex gap-x-6">
@@ -148,7 +151,9 @@ export function Footer({ className }: FooterProps) {
             <p className="text-sm text-muted-foreground">
               &copy; {currentYear} React Vite Boilerplate. All rights reserved.
             </p>
-            <p className={`mt-2 text-sm text-muted-foreground md:mt-0 ${motionClass}`}>
+            <p
+              className={`mt-2 text-sm text-muted-foreground md:mt-0 ${motionClass}`}
+            >
               Made by Matt Jaikaran
               {isLargeScreen && showDevBadge && (
                 <span className="ml-2 rounded bg-yellow-100 px-1 py-0.5 text-xs text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">

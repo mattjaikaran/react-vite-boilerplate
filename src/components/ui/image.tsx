@@ -4,7 +4,10 @@ import { cn } from '@/lib/utils';
 type ObjectFit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
 type ObjectPosition = 'center' | 'top' | 'bottom' | 'left' | 'right' | string;
 
-interface ImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src' | 'width' | 'height'> {
+interface ImageProps extends Omit<
+  React.ImgHTMLAttributes<HTMLImageElement>,
+  'src' | 'width' | 'height'
+> {
   src: string;
   alt: string;
   /** Explicit width — required when layout="fixed" */
@@ -65,32 +68,89 @@ const TRANSPARENT_GIF =
 type ImageState = {
   status: 'loading' | 'loaded' | 'error';
   currentSrc: string;
-  prevSrc: string;
 };
 
-type ImageAction =
-  | { type: 'load' }
-  | { type: 'error'; fallbackSrc?: string }
-  | { type: 'src_changed'; src: string };
+type ImageAction = { type: 'load' } | { type: 'error'; fallbackSrc?: string };
 
 function imageReducer(state: ImageState, action: ImageAction): ImageState {
-  switch (action.type) {
-    case 'load':
-      return { ...state, status: 'loaded' };
-    case 'error':
-      if (action.fallbackSrc && state.currentSrc !== action.fallbackSrc) {
-        return { ...state, currentSrc: action.fallbackSrc };
-      }
-      return { ...state, status: 'error' };
-    case 'src_changed':
-      return { status: 'loading', currentSrc: action.src, prevSrc: action.src };
+  if (action.type === 'load') return { ...state, status: 'loaded' };
+  if (action.fallbackSrc && state.currentSrc !== action.fallbackSrc) {
+    return { status: 'loading', currentSrc: action.fallbackSrc };
+  }
+  return { ...state, status: 'error' };
+}
+
+function getLayout(
+  layout: NonNullable<ImageProps['layout']>,
+  width: ImageProps['width'],
+  height: ImageProps['height'],
+  aspectRatio?: string
+) {
+  const ratio =
+    aspectRatio ?? (width && height ? `${width}/${height}` : undefined);
+  switch (layout) {
+    case 'fill':
+      return {
+        wrapper: 'absolute inset-0 block overflow-hidden',
+        image: 'absolute inset-0 h-full w-full',
+        style: undefined,
+      };
+    case 'fixed':
+      return {
+        wrapper: 'relative inline-block shrink-0 overflow-hidden',
+        image: 'block h-full w-full',
+        style: { width, height },
+      };
+    case 'intrinsic':
+      return {
+        wrapper: 'relative block overflow-hidden',
+        image: 'block h-auto w-full',
+        style: { maxWidth: width, aspectRatio: ratio },
+      };
     default:
-      return state;
+      return {
+        wrapper: 'relative block w-full overflow-hidden',
+        image: ratio ? 'absolute inset-0 h-full w-full' : 'block h-auto w-full',
+        style: { aspectRatio: ratio },
+      };
   }
 }
 
 // react-doctor-disable-next-line deslop/unused-export
-export function Image({
+export function Image(props: ImageProps) {
+  // A new source owns a new lifecycle, including its cached-load check and fallback.
+  return <ImageLifecycle key={props.src} {...props} />;
+}
+
+function ImagePlaceholder({
+  placeholder,
+  blurDataURL,
+  objectFit,
+  objectPosition,
+}: Pick<ImageProps, 'placeholder' | 'blurDataURL' | 'objectPosition'> & {
+  objectFit: ObjectFit;
+}) {
+  if (placeholder === 'skeleton') {
+    return <span className="absolute inset-0 animate-pulse bg-muted" />;
+  }
+  if (placeholder === 'blur') {
+    return (
+      <img
+        src={blurDataURL ?? TRANSPARENT_GIF}
+        alt=""
+        aria-hidden
+        className={cn(
+          'absolute inset-0 h-full w-full scale-110 blur-sm',
+          FIT_MAP[objectFit]
+        )}
+        style={{ objectPosition }}
+      />
+    );
+  }
+  return null;
+}
+
+function ImageLifecycle({
   src,
   alt,
   width,
@@ -115,22 +175,15 @@ export function Image({
   const [state, dispatch] = useReducer(imageReducer, {
     status: 'loading',
     currentSrc: src,
-    prevSrc: src,
   });
-
-  // Sync src prop changes without derived state
-  if (src !== state.prevSrc) {
-    dispatch({ type: 'src_changed', src });
-  }
-
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // If the image is already cached the load event fires before React mounts — check immediately
+  // Also check fallback sources: cached images may complete before a load event.
   useEffect(() => {
     if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
       dispatch({ type: 'load' });
     }
-  }, []);
+  }, [state.currentSrc]);
 
   function handleLoad() {
     dispatch({ type: 'load' });
@@ -149,148 +202,52 @@ export function Image({
       ? ROUNDED_MAP[String(rounded) as 'true' | 'false']
       : ROUNDED_MAP[rounded];
 
-  const fitClass = FIT_MAP[objectFit];
-
-  // --- layout="fill": absolutely fills its positioned parent ---
-  if (layout === 'fill') {
-    return (
-      <span
-        className={cn('absolute inset-0 block overflow-hidden', roundedClass, wrapperClassName)}
-      >
-        {status === 'loading' && placeholder === 'skeleton' && (
-          <span className="absolute inset-0 animate-pulse bg-muted" />
-        )}
-        {status === 'error' && fallback ? (
-          <span className="absolute inset-0 flex items-center justify-center">{fallback}</span>
-        ) : (
-          <img
-            ref={imgRef}
-            src={placeholder === 'blur' ? (blurDataURL ?? TRANSPARENT_GIF) : currentSrc}
-            data-src={currentSrc}
-            alt={alt}
-            loading={priority ? 'eager' : 'lazy'}
-            decoding="async"
-            onLoad={handleLoad}
-            onError={handleError}
-            className={cn(
-              'absolute inset-0 h-full w-full',
-              fitClass,
-              roundedClass,
-              status === 'loading' && placeholder === 'blur' ? 'scale-110 blur-sm' : '',
-              status === 'loaded' ? 'scale-100 blur-0 transition-all duration-300' : '',
-              className
-            )}
-            style={{ objectPosition, ...style }}
-            {...rest}
-          />
-        )}
-        {/* swap in real src after mount for blur placeholder */}
-        {placeholder === 'blur' && status === 'loading' && (
-          <img
-            src={currentSrc}
-            alt=""
-            aria-hidden
-            className="sr-only"
-            onLoad={() => {
-              if (imgRef.current) imgRef.current.src = currentSrc;
-            }}
-          />
-        )}
-      </span>
-    );
-  }
-
-  // --- layout="fixed": exact pixel size, no scaling ---
-  if (layout === 'fixed') {
-    return (
-      <span
-        className={cn('relative inline-block shrink-0 overflow-hidden', roundedClass, wrapperClassName)}
-        style={{ width, height }}
-      >
-        {status === 'loading' && placeholder === 'skeleton' && (
-          <span className="absolute inset-0 animate-pulse bg-muted" />
-        )}
-        {status === 'error' && fallback ? (
-          <span className="absolute inset-0 flex items-center justify-center">{fallback}</span>
-        ) : (
-          <img
-            ref={imgRef}
-            src={currentSrc}
-            alt={alt}
-            width={width}
-            height={height}
-            loading={priority ? 'eager' : 'lazy'}
-            decoding="async"
-            onLoad={handleLoad}
-            onError={handleError}
-            className={cn('block h-full w-full', fitClass, roundedClass, className)}
-            style={{ objectPosition, ...style }}
-            {...rest}
-          />
-        )}
-      </span>
-    );
-  }
-
-  // --- layout="intrinsic": responsive but capped at natural size ---
-  if (layout === 'intrinsic') {
-    return (
-      <span
-        className={cn('relative block overflow-hidden', roundedClass, wrapperClassName)}
-        style={{ maxWidth: width, aspectRatio: aspectRatio ?? (width && height ? `${width}/${height}` : undefined) }}
-      >
-        {status === 'loading' && placeholder === 'skeleton' && (
-          <span className="absolute inset-0 animate-pulse bg-muted" />
-        )}
-        {status === 'error' && fallback ? (
-          <span className="absolute inset-0 flex items-center justify-center">{fallback}</span>
-        ) : (
-          <img
-            ref={imgRef}
-            src={currentSrc}
-            alt={alt}
-            loading={priority ? 'eager' : 'lazy'}
-            decoding="async"
-            onLoad={handleLoad}
-            onError={handleError}
-            className={cn('block h-auto w-full', fitClass, roundedClass, className)}
-            style={{ objectPosition, ...style }}
-            {...rest}
-          />
-        )}
-      </span>
-    );
-  }
-
-  // --- layout="responsive" (default): scales to 100% width, aspect ratio via CSS ---
-  const resolvedAspectRatio =
-    aspectRatio ?? (width && height ? `${width}/${height}` : undefined);
+  const sizing = getLayout(layout, width, height, aspectRatio);
+  const isLoading = status === 'loading';
 
   return (
     <span
-      className={cn('relative block w-full overflow-hidden', roundedClass, wrapperClassName)}
-      style={{ aspectRatio: resolvedAspectRatio }}
+      className={cn(sizing.wrapper, roundedClass, wrapperClassName)}
+      style={sizing.style}
     >
-      {status === 'loading' && placeholder === 'skeleton' && (
-        <span className="absolute inset-0 animate-pulse bg-muted" />
+      {isLoading && (
+        <ImagePlaceholder
+          placeholder={placeholder}
+          blurDataURL={blurDataURL}
+          objectFit={objectFit}
+          objectPosition={objectPosition}
+        />
       )}
       {status === 'error' && fallback ? (
-        <span className="absolute inset-0 flex items-center justify-center bg-muted text-muted-foreground">
+        <span
+          className={cn(
+            'absolute inset-0 flex items-center justify-center',
+            layout === 'responsive' && 'bg-muted text-muted-foreground'
+          )}
+        >
           {fallback}
         </span>
       ) : (
         <img
+          key={currentSrc}
           ref={imgRef}
           src={currentSrc}
+          data-src={layout === 'fill' ? currentSrc : undefined}
           alt={alt}
+          width={layout === 'fixed' ? width : undefined}
+          height={layout === 'fixed' ? height : undefined}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}
           className={cn(
-            resolvedAspectRatio ? 'absolute inset-0 h-full w-full' : 'block h-auto w-full',
-            fitClass,
+            sizing.image,
+            FIT_MAP[objectFit],
             roundedClass,
+            isLoading && placeholder === 'blur' && 'opacity-0',
+            status === 'loaded' &&
+              placeholder === 'blur' &&
+              'transition-opacity duration-300',
             className
           )}
           style={{ objectPosition, ...style }}
@@ -303,11 +260,19 @@ export function Image({
 
 // --- Convenience variants ---
 
-interface AvatarImageProps extends Omit<ImageProps, 'layout' | 'rounded' | 'objectFit'> {
+interface AvatarImageProps extends Omit<
+  ImageProps,
+  'layout' | 'rounded' | 'objectFit'
+> {
   size?: number;
 }
 
-export function AvatarImage({ size = 40, className, wrapperClassName, ...props }: AvatarImageProps) {
+export function AvatarImage({
+  size = 40,
+  className,
+  wrapperClassName,
+  ...props
+}: AvatarImageProps) {
   return (
     <Image
       layout="fixed"
@@ -346,7 +311,11 @@ interface ThumbnailImageProps extends Omit<ImageProps, 'layout' | 'objectFit'> {
 }
 
 // react-doctor-disable-next-line deslop/unused-export
-export function ThumbnailImage({ aspectRatio = '16/9', rounded = 'md', ...props }: ThumbnailImageProps) {
+export function ThumbnailImage({
+  aspectRatio = '16/9',
+  rounded = 'md',
+  ...props
+}: ThumbnailImageProps) {
   return (
     <Image
       layout="responsive"

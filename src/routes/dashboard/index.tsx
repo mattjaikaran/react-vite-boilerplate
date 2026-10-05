@@ -24,6 +24,8 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/dashboard/')({
   component: DashboardPage,
 });

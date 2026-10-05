@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDebounce } from '@/hooks';
-import { useTodos } from '@/hooks/use-todo';
+import { useTodos, useToggleTodo } from '@/hooks/use-todo';
 import { useStore } from '@/lib/store';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Todo, TodoPriority } from '@/types';
@@ -18,9 +18,12 @@ import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { CheckCircle2, Circle, Plus, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
+// TanStack Router requires the named Route registration in this file.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export const Route = createFileRoute('/todos/')({
   beforeLoad: () => {
-    if (!useStore.getState().isAuthenticated) throw redirect({ to: '/auth/login' });
+    if (!useStore.getState().isAuthenticated)
+      throw redirect({ to: '/auth/login' });
   },
   component: TodosPage,
 });
@@ -33,6 +36,7 @@ const todoColumns: ColumnDef<Todo>[] = [
 
 function TodosPage() {
   const { data: todos = [], isLoading } = useTodos();
+  const toggleTodo = useToggleTodo();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [priorityFilter, setPriorityFilter] = useState<TodoPriority | 'all'>(
@@ -190,7 +194,14 @@ function TodosPage() {
                   filteredTodos.map((todo: Todo) => (
                     <div key={todo.id} className="card-container p-4">
                       <div className="flex items-start gap-3">
-                        <button type="button" className="mt-1">
+                        <button
+                          type="button"
+                          className="mt-1"
+                          aria-label={`${todo.completed ? 'Mark incomplete' : 'Complete'}: ${todo.title}`}
+                          aria-pressed={todo.completed}
+                          disabled={toggleTodo.isPending}
+                          onClick={() => toggleTodo.mutate(todo.id)}
+                        >
                           {todo.completed ? (
                             <CheckCircle2 className="size-5 text-green-600" />
                           ) : (
@@ -223,7 +234,8 @@ function TodosPage() {
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
                             {todo.dueDate && (
                               <span>
-                                Due: {new Date(todo.dueDate).toLocaleDateString()}
+                                Due:{' '}
+                                {new Date(todo.dueDate).toLocaleDateString()}
                               </span>
                             )}
                             {todo.tags.length > 0 && (

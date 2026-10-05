@@ -7,7 +7,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import type { useReactTable } from '@tanstack/react-table';
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Loader2,
+} from 'lucide-react';
 import React, { useRef } from 'react';
 /**
  * Server-side pagination info (Django Ninja format)
@@ -62,12 +69,16 @@ function DataTableToolbar<TData>({
               value={
                 onSearchChange
                   ? searchValue
-                  : ((table.getColumn(searchKey!)?.getFilterValue() as string) ?? '')
+                  : ((table
+                      .getColumn(searchKey!)
+                      ?.getFilterValue() as string) ?? '')
               }
               onChange={event =>
                 onSearchChange
                   ? handleSearchChange(event.target.value)
-                  : table.getColumn(searchKey!)?.setFilterValue(event.target.value)
+                  : table
+                      .getColumn(searchKey!)
+                      ?.setFilterValue(event.target.value)
               }
               className="max-w-sm"
             />
@@ -86,22 +97,20 @@ function DataTableToolbar<TData>({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .reduce<React.ReactNode[]>((acc, column) => {
-                if (!column.getCanHide()) return acc;
-                acc.push(
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={value => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-                return acc;
-              }, [])}
+            {table.getAllColumns().reduce<React.ReactNode[]>((acc, column) => {
+              if (!column.getCanHide()) return acc;
+              acc.push(
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={value => column.toggleVisibility(!!value)}
+                >
+                  {column.id}
+                </DropdownMenuCheckboxItem>
+              );
+              return acc;
+            }, [])}
           </DropdownMenuContent>
         </DropdownMenu>
       )}
@@ -135,16 +144,26 @@ function DataTablePagination<TData>({
     <div className="flex items-center justify-between px-2">
       <div className="flex-1 text-sm text-muted-foreground">
         {isServerSide ? (
-          <>Showing {data.length} of {totalRows} row(s)</>
+          <>
+            Showing {data.length} of {totalRows} row(s)
+          </>
         ) : (
-          <>{table.getFilteredSelectedRowModel().rows.length} of {totalRows} row(s) selected.</>
+          <>
+            {table.getFilteredSelectedRowModel().rows.length} of {totalRows}{' '}
+            row(s) selected.
+          </>
         )}
       </div>
       <div className="flex items-center gap-x-6 lg:gap-x-8">
         <div className="flex items-center gap-x-2">
           <p className="text-sm font-medium">Rows per page</p>
           <select
-            value={isServerSide ? serverPagination!.pageSize : table.getState().pagination.pageSize}
+            aria-label="Rows per page"
+            value={
+              isServerSide
+                ? serverPagination!.pageSize
+                : table.getState().pagination.pageSize
+            }
             onChange={e => {
               const newSize = Number(e.target.value);
               if (onPaginationChange) {

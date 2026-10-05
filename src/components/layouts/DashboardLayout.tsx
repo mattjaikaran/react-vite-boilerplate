@@ -106,6 +106,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             size="icon"
             className="lg:hidden"
             onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
           >
             <X className="size-5" />
           </Button>
@@ -146,6 +147,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               size="icon"
               className="lg:hidden"
               onClick={() => setSidebarOpen(true)}
+              aria-label="Open sidebar"
             >
               <Menu className="size-5" />
             </Button>
@@ -158,15 +160,33 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <ModeToggle />
 
               {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="size-5" />
-                <span className="absolute right-1 top-1 size-2 rounded-full bg-rose-500" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Notifications"
+                  >
+                    <Bell className="size-5" aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings">Manage notification preferences</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* User menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="gap-2">
+                  <Button
+                    variant="ghost"
+                    className="gap-2"
+                    aria-label="Account menu"
+                  >
                     <div className="flex size-8 items-center justify-center rounded-full bg-primary/10">
                       <User className="size-4 text-primary" />
                     </div>

@@ -24,8 +24,8 @@ export function formatCurrency(
   const formatter =
     currency === 'USD' && locale === 'en-US'
       ? DEFAULT_CURRENCY_FORMATTER
-      // react-doctor-disable-next-line js-hoist-intl, react-doctor/js-hoist-intl
-      : new Intl.NumberFormat(locale, { style: 'currency', currency });
+      : // react-doctor-disable-next-line js-hoist-intl, react-doctor/js-hoist-intl
+        new Intl.NumberFormat(locale, { style: 'currency', currency });
   return formatter.format(amount);
 }
 
@@ -37,8 +37,8 @@ export function formatNumber(
   const formatter =
     !options && locale === 'en-US'
       ? DEFAULT_NUMBER_FORMATTER
-      // react-doctor-disable-next-line js-hoist-intl, react-doctor/js-hoist-intl
-      : new Intl.NumberFormat(locale, options);
+      : // react-doctor-disable-next-line js-hoist-intl, react-doctor/js-hoist-intl
+        new Intl.NumberFormat(locale, options);
   return formatter.format(number);
 }
 
@@ -50,8 +50,8 @@ export function formatPercentage(
   const formatter =
     decimals === 2 && locale === 'en-US'
       ? DEFAULT_PERCENT_FORMATTER
-      // react-doctor-disable-next-line js-hoist-intl, react-doctor/js-hoist-intl
-      : new Intl.NumberFormat(locale, {
+      : // react-doctor-disable-next-line js-hoist-intl, react-doctor/js-hoist-intl
+        new Intl.NumberFormat(locale, {
           style: 'percent',
           minimumFractionDigits: decimals,
           maximumFractionDigits: decimals,

@@ -22,26 +22,30 @@ function snakeToCamelStr(s: string): string {
 }
 
 function camelToSnakeStr(s: string): string {
-  return s.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+  return s.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function snakeToCamel(data: any): any {
   if (Array.isArray(data)) return data.map(snakeToCamel);
   if (data !== null && typeof data === 'object' && !(data instanceof File)) {
     return Object.fromEntries(
-      Object.entries(data).map(([k, v]) => [snakeToCamelStr(k), snakeToCamel(v)])
+      Object.entries(data).map(([k, v]) => [
+        snakeToCamelStr(k),
+        snakeToCamel(v),
+      ])
     );
   }
   return data;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function camelToSnake(data: any): any {
   if (Array.isArray(data)) return data.map(camelToSnake);
   if (data !== null && typeof data === 'object' && !(data instanceof File)) {
     return Object.fromEntries(
-      Object.entries(data).map(([k, v]) => [camelToSnakeStr(k), camelToSnake(v)])
+      Object.entries(data).map(([k, v]) => [
+        camelToSnakeStr(k),
+        camelToSnake(v),
+      ])
     );
   }
   return data;
@@ -139,7 +143,9 @@ const createApiInstance = (): AxiosInstance => {
             const refreshPayload = { refresh: refreshToken };
 
             const response = await instance.post<
-              ApiResponse<{ accessToken: string }> | { token: string } | { access: string }
+              | ApiResponse<{ accessToken: string }>
+              | { token: string }
+              | { access: string }
             >(refreshPath, refreshPayload);
 
             // Handle response formats: Django {token}, legacy {access}, or wrapped {data: {accessToken}}
@@ -150,9 +156,11 @@ const createApiInstance = (): AxiosInstance => {
               newToken = response.data.access as string;
             } else if (
               'data' in response.data &&
-              (response.data as ApiResponse<{ accessToken: string }>).data?.accessToken
+              (response.data as ApiResponse<{ accessToken: string }>).data
+                ?.accessToken
             ) {
-              newToken = (response.data as ApiResponse<{ accessToken: string }>).data.accessToken;
+              newToken = (response.data as ApiResponse<{ accessToken: string }>)
+                .data.accessToken;
             } else {
               throw new Error('Invalid refresh response');
             }
