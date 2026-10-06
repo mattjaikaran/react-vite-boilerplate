@@ -323,7 +323,7 @@ self-service. No nonexistent change-password or server-action API is retained.
 
 ### Theme Configuration
 
-Dark mode uses the Zustand UI slice. Fresh installs follow the operating system until the user chooses an appearance with the dark/light toggle; explicit choices persist on this device. Dark mode uses a pure-black background and neutral-gray surfaces. Customize CSS-first tokens and utilities in `src/globals.css`; see `DESIGN.md`. There is no Tailwind JavaScript configuration.
+Dark mode uses the Zustand UI slice. Fresh installs follow the operating system until the user chooses an appearance with the dark/light toggle; explicit choices persist on this device. Dark mode uses a pure-black background and neutral-gray surfaces. Customize CSS-first tokens and utilities in `src/globals.css`; see the definitive [design brief and redesign workflow](./DESIGN.md#applying-a-new-design) for exact edit paths, implementation order, and local checks. There is no Tailwind JavaScript configuration.
 
 ## Testing
 
