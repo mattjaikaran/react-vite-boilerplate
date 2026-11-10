@@ -1,1 +1,1 @@
-Read and follow [AGENTS.md](AGENTS.md), the canonical repository guide.
+@AGENTS.md
