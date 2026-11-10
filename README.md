@@ -10,7 +10,6 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 - [Getting Started](#getting-started) - Quick setup guide
 - [Architecture](#architecture) - Project structure and design
 - [Deployment](./DEPLOYMENT.md) - Standalone and Django deployment guides
-- [Features Guide](./FEATURES.md) - Detailed feature documentation
 
 ## Features
 
@@ -259,7 +258,7 @@ make help-django     # Show Django integration commands
 make help-utils      # Show utility commands
 ```
 
-**📖 Full Documentation**: See [docs/MAKEFILE.md](./docs/MAKEFILE.md) for complete command reference and examples.
+**📖 Full Documentation**: See [docs/makefile.md](./docs/makefile.md) for complete command reference and examples.
 
 ### Direct Bun Commands
 
@@ -327,11 +326,8 @@ Dark mode uses the Zustand UI slice. Fresh installs follow the operating system 
 
 ## Testing
 
-The project uses Vitest for testing with comprehensive coverage:
-
-- **Unit Tests** - Component and utility function testing
-- **Integration Tests** - Form and API integration testing
-- **Coverage Reports** - Detailed test coverage tracking
+The project uses Vitest for existing behavior and boundary tests. Test scope
+and verification rules live in [AGENTS.md](./AGENTS.md).
 
 ```bash
 # Run tests
@@ -429,18 +425,12 @@ by the separate backend session.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Fork the repository and create a feature branch.
+2. Make the scoped change and commit it with a Conventional Commit.
+3. Push the branch and open a pull request.
 
-### Development Guidelines
-
-- Follow the existing code style
-- Tests only for bugs, public contracts, or permission/boundary behavior; no rendering/wiring/mocks/snapshots, at most one new file per task, never coverage chasing
-- Update documentation as needed
-- Ensure all checks pass before submitting
+Commit format, testing policy, required checks, and security rules are defined
+in [AGENTS.md](./AGENTS.md). Update docs alongside behavior changes.
 
 ## Built With
 

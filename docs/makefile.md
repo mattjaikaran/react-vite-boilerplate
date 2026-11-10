@@ -88,12 +88,12 @@ make shadcn-all
 
 #### API Integration
 
-| Command                                                          | Description                                   |
-| ---------------------------------------------------------------- | --------------------------------------------- |
-| `make api-schema`                                                | Download API schema from Django backend       |
-| `make api-types`                                                 | Generate TypeScript types from OpenAPI schema |
-| `make api-client`                                                | Generate API client from schema               |
-| `make django-types SCHEMA_URL=http://localhost:8000/api/schema/` | Generate types from Django API schema         |
+| Command             | Description                                                             |
+| ------------------- | ----------------------------------------------------------------------- |
+| `make api-schema`   | Check the producer-exported OpenAPI contract against generated output   |
+| `make api-types`    | Generate the SDK, Zod schemas, and TanStack Query helpers               |
+| `make api-client`   | Regenerate the fetch client and all API contracts (alias for api-types) |
+| `make django-types` | Alias for `make api-types`; no schema download                          |
 
 #### Configuration Helpers
 
@@ -107,8 +107,10 @@ make shadcn-all
 #### Examples
 
 ```bash
-# Download schema and generate types
+# Check generated contracts against the producer export
 make api-schema
+
+# Regenerate contracts after a backend schema change
 make api-types
 
 # Generate Django configuration files
@@ -208,15 +210,16 @@ This creates configuration files in `docs/django-integration/`:
 ### 2. API Integration
 
 ```bash
-# Download API schema (make sure Django server is running)
-make api-schema
-
-# Generate TypeScript types
+# Regenerate contracts after exporting the backend schema
 make api-types
 
-# Generate API client
-make api-client
+# Verify generated output matches the producer export byte for byte
+make api-schema
 ```
+
+The backend owns the schema. Export it from the backend checkout, then
+regenerate; see [backend-contract.md](backend-contract.md) for the export
+command, producer revision, and cookie contract.
 
 ### 3. Build for Django
 
@@ -229,17 +232,8 @@ This creates a `dist/static/` directory that can be copied to your Django `STATI
 
 ### 4. Environment Variables
 
-Set these environment variables for API integration:
-
-```bash
-# For schema download
-export DJANGO_SCHEMA_URL=http://localhost:8000/api/schema/
-# or
-export SCHEMA_URL=http://localhost:8000/api/schema/
-
-# Then run
-make api-schema
-```
+Browser configuration is public and uses the `VITE_*` names documented in
+`env.example`.
 
 ## Advanced Usage
 

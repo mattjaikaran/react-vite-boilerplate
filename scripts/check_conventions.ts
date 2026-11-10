@@ -14,6 +14,7 @@
  *   9. NO_USE_STATE_FOR_FORMS — useState for form state (use react-hook-form + zod)
  *  10. NO_INLINE_FETCH — raw fetching outside the generated/transport boundary
  *  11. COMPONENT_SIZE  — component files over 300 lines
+ *  12. AGENT_DOCS      — AGENTS.md, CLAUDE.md import, and skill frontmatter
  *
  * Usage:
  *   bun run scripts/check_conventions.ts
@@ -24,7 +25,7 @@
  */
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { join, relative, extname } from 'node:path';
+import { join, relative, extname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { argv, exit } from 'node:process';
 
@@ -315,6 +316,76 @@ function* checkComponentSize(files: string[]): Generator<Violation> {
   }
 }
 
+const AGENT_DOC_LINK_RE = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+
+function* checkAgentDocs(_files: string[]): Generator<Violation> {
+  const agentsPath = join(PROJECT_ROOT, 'AGENTS.md');
+  if (!existsSync(agentsPath)) {
+    yield {
+      check: 'AGENT_DOCS',
+      filepath: 'AGENTS.md',
+      line: 1,
+      message: 'AGENTS.md is missing at the repository root',
+    };
+    return;
+  }
+
+  const lines = readFileSync(agentsPath, 'utf-8').split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    for (const match of lines[i].matchAll(AGENT_DOC_LINK_RE)) {
+      const target = match[1];
+      if (!target) continue;
+      if (/^(?:[a-zA-Z][a-zA-Z0-9+.-]*:|\/\/|#)/.test(target)) continue;
+      const [linkPath] = target.split('#');
+      if (!linkPath) continue;
+      if (!existsSync(resolve(PROJECT_ROOT, linkPath))) {
+        yield {
+          check: 'AGENT_DOCS',
+          filepath: 'AGENTS.md',
+          line: i + 1,
+          message: `relative link does not resolve: ${target}`,
+        };
+      }
+    }
+  }
+
+  const claudePath = join(PROJECT_ROOT, 'CLAUDE.md');
+  if (existsSync(claudePath)) {
+    const claude = readFileSync(claudePath, 'utf-8').trim();
+    if (claude !== '@AGENTS.md') {
+      yield {
+        check: 'AGENT_DOCS',
+        filepath: 'CLAUDE.md',
+        line: 1,
+        message: "CLAUDE.md must contain only '@AGENTS.md'",
+      };
+    }
+  }
+
+  const skillsDir = join(PROJECT_ROOT, '.claude', 'skills');
+  if (existsSync(skillsDir)) {
+    for (const entry of readdirSync(skillsDir)) {
+      const skillPath = join(skillsDir, entry, 'SKILL.md');
+      if (!existsSync(skillPath)) continue;
+      const content = readFileSync(skillPath, 'utf-8');
+      const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(content)?.[1];
+      for (const field of ['name', 'description']) {
+        if (
+          !frontmatter ||
+          !new RegExp(`^${field}\\s*:`, 'm').test(frontmatter)
+        ) {
+          yield {
+            check: 'AGENT_DOCS',
+            filepath: relative(PROJECT_ROOT, skillPath),
+            line: 1,
+            message: `skill frontmatter is missing '${field}'`,
+          };
+        }
+      }
+    }
+  }
+}
+
 // ── Orchestration ────────────────────────────────────────────────────
 
 const CHECKS: Record<string, (files: string[]) => Generator<Violation>> = {
@@ -329,6 +400,7 @@ const CHECKS: Record<string, (files: string[]) => Generator<Violation>> = {
   NO_USE_STATE_FOR_FORMS: checkNoUseStateForForms,
   NO_INLINE_FETCH: checkNoInlineFetch,
   COMPONENT_SIZE: checkComponentSize,
+  AGENT_DOCS: checkAgentDocs,
 };
 
 interface CliArgs {
