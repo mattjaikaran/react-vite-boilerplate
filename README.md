@@ -373,8 +373,9 @@ Vite environment values are build-time settings, not runtime container secrets.
 The optional monorepo proxy uses `docker compose -f docker-compose.monorepo.yml
 --profile production up --build` and maps host port 80 to non-root nginx port 8080.
 It preserves `/api/`, `/admin/`, `/static/`, and `/media/` backend routing and Vite HMR.
-It requires a separately configured backend at `BACKEND_PATH` (default `../backend`);
-the ignored `.runtime/backend` contract checkout is not a deployment source.
+It requires a separately configured backend at the `BACKEND_PATH` environment
+variable (default ../backend); the ignored `.runtime/backend` contract checkout
+is not a deployment source.
 
 ## Key Concepts
 

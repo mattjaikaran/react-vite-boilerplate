@@ -13,7 +13,7 @@ unused-file rule override is gone.
 - Regression check after React edits: `bun run doctor --verbose --scope changed`
 - Full scan: `bun run doctor` (the default `--scope full`)
 - Focused UI design audit:
-  `bun run react-doctor --no-telemetry --no-supply-chain design . --verbose`
+  `bunx react-doctor@0.9.14 --no-telemetry --no-supply-chain design . --verbose`
 
 If errors or warnings increased, fix the regressions before committing. The
 local gate disables telemetry and remote scoring.

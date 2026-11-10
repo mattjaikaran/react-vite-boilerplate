@@ -201,7 +201,8 @@ make env-all
 make django-all
 ```
 
-This creates configuration files in `docs/django-integration/`:
+This creates three configuration files in a generated docs/django-integration
+directory:
 
 - `cors-settings.py` - CORS configuration for Django
 - `urls-example.py` - URL routing example
@@ -267,18 +268,19 @@ make component NAME=ProductCard
 make build && make performance-test
 ```
 
-## Environment Variables
+## Makefile Variables
 
-The Makefile respects these environment variables:
+Targets that generate files read these make variables:
 
-- `SCHEMA_URL` or `DJANGO_SCHEMA_URL` - API schema endpoint
-- `DEBUG` - Enable debug mode for development server
+- `NAME` - component or hook name for `make component` and `make hook`
+- `COMPONENT` - shadcn/ui component for `make add-shadcn-component`
 
 ## Tips
 
 1. **Use tab completion**: Most shells support tab completion for Makefile targets
 2. **Chain commands**: Use `&&` to chain multiple commands
-3. **Check help**: Use `make help-<category>` to see specific command groups
+3. **Check help**: Use `make help` for the full list, or `make help-shadcn`,
+   `make help-django`, and `make help-utils` for category groups
 4. **Environment files**: Always run `make env-setup` after cloning the project
 
 ## Troubleshooting
