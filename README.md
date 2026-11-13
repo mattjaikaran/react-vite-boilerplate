@@ -340,6 +340,20 @@ bun run test:ui
 bun run test:coverage
 ```
 
+Journey specs live in `e2e/` and run under Playwright against the dev server:
+
+```bash
+# Run journey specs; writes test-results/journeys.json
+bun run test:e2e
+
+# Run journey specs in Playwright UI mode
+bun run test:e2e:ui
+```
+
+Tag one test per journey with `@J-NNN` and wrap each step in
+`test.step('J-NNN-S<n>: ...')`. The JSON reporter in `playwright.config.ts`
+writes the per-step results the backend JOURNEYS gate reads.
+
 ## Docker
 
 ### Development
@@ -430,8 +444,9 @@ by the separate backend session.
 2. Make the scoped change and commit it with a Conventional Commit.
 3. Push the branch and open a pull request.
 
-Commit format, testing policy, required checks, and security rules are defined
-in [AGENTS.md](./AGENTS.md). Update docs alongside behavior changes.
+Testing policy, required checks, and generated-client rules are defined in
+[AGENTS.md](./AGENTS.md); commit format and secret handling follow the monorepo
+root rules. Update docs alongside behavior changes.
 
 ## Built With
 
