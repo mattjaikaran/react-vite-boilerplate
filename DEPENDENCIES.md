@@ -12,6 +12,7 @@ listed here. Add a row when you add a dependency.
 | @radix-ui/react-label           | 2.1.0    |
 | @radix-ui/react-select          | 2.1.1    |
 | @radix-ui/react-slot            | 1.1.0    |
+| @tanstack/charts                | 1.0.0    |
 | @tanstack/react-query           | 5.56.2   |
 | @tanstack/react-query-devtools  | 5.56.2   |
 | @tanstack/react-router          | 1.169.2  |

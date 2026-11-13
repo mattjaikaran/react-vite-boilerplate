@@ -1,10 +1,16 @@
 /**
  * Donut Chart Component
- * A flexible donut/pie chart using SVG for data visualization
+ * A flexible donut chart built on TanStack Charts.
  */
 
 import { cn } from '@/lib/utils';
+import { defineChart } from '@tanstack/charts';
+import { pie, polar, radialArc, radialText } from '@tanstack/charts/polar';
+import { Chart } from '@tanstack/charts/react';
+import { scaleLinear } from '@tanstack/charts/scales/linear';
+import { tooltip } from '@tanstack/charts/tooltip';
 import { useMemo } from 'react';
+import { chartTheme } from './chart-theme';
 
 export interface DonutChartDataPoint {
   label: string;
@@ -37,40 +43,54 @@ export function DonutChart({
   centerValue,
   animate = true,
 }: DonutChartProps) {
-  const { segments, total } = useMemo(() => {
-    const sum = data.reduce((acc, d) => acc + d.value, 0);
+  const total = useMemo(
+    () => data.reduce((sum, point) => sum + point.value, 0),
+    [data]
+  );
 
-    if (sum === 0) return { segments: [], total: 0 };
+  const definition = useMemo(() => {
+    const ringThickness = (thickness / 100) * size;
+    const slices = pie(data, { value: 'value' });
 
-    let cumulativeAngle = -90; // Start from top
-    const radius = 50 - thickness / 2;
-    const circumference = 2 * Math.PI * radius;
-
-    const segs = data.map(d => {
-      const percentage = (d.value / sum) * 100;
-      const angle = (d.value / sum) * 360;
-      const startAngle = cumulativeAngle;
-
-      // Calculate arc path
-      const dashArray = (percentage / 100) * circumference;
-      const dashOffset = ((cumulativeAngle + 90) / 360) * circumference;
-
-      cumulativeAngle += angle;
-
-      return {
-        ...d,
-        percentage,
-        startAngle,
-        endAngle: cumulativeAngle,
-        dashArray,
-        dashOffset,
-        radius,
-        circumference,
-      };
+    return defineChart({
+      marks: [
+        polar({
+          inset: 0,
+          radiusRatio: 1,
+          marks: [
+            radialArc(slices, {
+              innerRadius: ({ radius }) => Math.max(radius - ringThickness, 0),
+              fill: slice => slice.color,
+              key: slice => slice.label,
+            }),
+            ...(showLabels
+              ? [
+                  radialText(slices, {
+                    angle: 'angle',
+                    radius: 0.78,
+                    text: slice =>
+                      slice.fraction > 0.05
+                        ? `${Math.round(slice.fraction * 100)}%`
+                        : null,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    anchor: 'middle',
+                  }),
+                ]
+              : []),
+          ],
+          scales: {
+            angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+          },
+        }),
+      ],
+      scales: { x: null, y: null },
+      theme: chartTheme,
+      svgAnimation: animate,
+      tooltip,
     });
-
-    return { segments: segs, total: sum };
-  }, [data, thickness]);
+  }, [data, thickness, size, showLabels, animate]);
 
   if (data.length === 0 || total === 0) {
     return (
@@ -84,33 +104,17 @@ export function DonutChart({
   }
 
   return (
-    <div className={cn('flex items-center gap-6', className)}>
-      {/* Chart */}
+    <div className={cn('chart-surface flex items-center gap-6', className)}>
       <div className="relative" style={{ width: size, height: size }}>
-        <svg viewBox="0 0 100 100" className="-rotate-90 transform">
-          {segments.map((segment, i) => (
-            <circle
-              key={i}
-              cx="50"
-              cy="50"
-              r={segment.radius}
-              fill="none"
-              stroke={segment.color}
-              strokeWidth={thickness}
-              strokeDasharray={`${segment.dashArray} ${segment.circumference}`}
-              strokeDashoffset={-segment.dashOffset}
-              className={cn(
-                'transition-all duration-700',
-                animate && 'animate-in fade-in zoom-in'
-              )}
-              style={{ animationDelay: `${i * 100}ms` }}
-            />
-          ))}
-        </svg>
+        <Chart
+          definition={definition}
+          width={size}
+          height={size}
+          ariaLabel={`Distribution across ${data.length} categories`}
+        />
 
-        {/* Center content */}
         {showCenter && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             {centerValue !== undefined && (
               <span className="text-2xl font-bold">
                 {typeof centerValue === 'number'
@@ -125,46 +129,21 @@ export function DonutChart({
             )}
           </div>
         )}
-
-        {/* Percentage labels on chart */}
-        {showLabels &&
-          segments.map(segment => {
-            const midAngle =
-              ((segment.startAngle + segment.endAngle) / 2) * (Math.PI / 180);
-            const labelRadius = 50 - thickness - 5;
-            const x = 50 + labelRadius * Math.cos(midAngle);
-            const y = 50 + labelRadius * Math.sin(midAngle);
-
-            return segment.percentage > 5 ? (
-              <span
-                key={segment.label}
-                className="absolute text-xs font-medium"
-                style={{
-                  left: `${x}%`,
-                  top: `${y}%`,
-                  transform: 'translate(-50%, -50%)',
-                }}
-              >
-                {Math.round(segment.percentage)}%
-              </span>
-            ) : null;
-          })}
       </div>
 
-      {/* Legend */}
       {showLegend && (
         <div className="flex flex-col gap-2">
-          {segments.map(segment => (
-            <div key={segment.label} className="flex items-center gap-2">
+          {data.map(point => (
+            <div key={point.label} className="flex items-center gap-2">
               <div
                 className="size-3 rounded-full"
-                style={{ backgroundColor: segment.color }}
+                style={{ backgroundColor: point.color }}
               />
               <span className="text-sm text-muted-foreground">
-                {segment.label}
+                {point.label}
               </span>
               <span className="ml-auto text-sm font-medium">
-                {segment.value.toLocaleString()}
+                {point.value.toLocaleString()}
               </span>
             </div>
           ))}

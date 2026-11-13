@@ -12,7 +12,7 @@ project.
 
 React Vite boilerplate: a standalone SPA that also deploys behind a Django
 backend. The stack is Vite 7, React 19, TypeScript 6, Tailwind CSS 4, TanStack
-Router and Query, Zod 4, Zustand 5, and Bun. See [README.md](README.md) for the
+Router, Query and Charts, Zod 4, Zustand 5, and Bun. See [README.md](README.md) for the
 feature overview, [DESIGN.md](DESIGN.md) for the visual system, and
 [DEPLOYMENT.md](DEPLOYMENT.md) for container and Django deployment.
 
@@ -34,11 +34,11 @@ explicitly asked to change lint/format tooling.
 Browser build configuration (`VITE_*`) is public: the explicit allowlist in
 `src/config/` names the exposed variables, and no credential belongs in it.
 
-## Commands and local verification
+## Commands and verification
 
-Run commands from the repository root. There are no GitHub Actions;
-verification is local. Do not add workflow files or claim a check passed
-without running it.
+Run commands from the repository root. CI runs the same checks on GitHub
+Actions; run them locally too before committing, and never claim a check
+passed without running it.
 
 | Purpose                        | Command                                                    |
 | ------------------------------ | ---------------------------------------------------------- |

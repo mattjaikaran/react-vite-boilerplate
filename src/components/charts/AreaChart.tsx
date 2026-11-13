@@ -1,10 +1,16 @@
 /**
  * Area Chart Component
- * A flexible area chart using SVG for data visualization
+ * A flexible area chart built on TanStack Charts.
  */
 
 import { cn } from '@/lib/utils';
+import { areaY, defineChart, lineY } from '@tanstack/charts';
+import { Chart } from '@tanstack/charts/react';
+import { scaleLinear } from '@tanstack/charts/scales/linear';
+import { scalePoint } from '@tanstack/charts/scales/point';
+import { tooltip } from '@tanstack/charts/tooltip';
 import { useId, useMemo } from 'react';
+import { chartTheme } from './chart-theme';
 
 export interface AreaChartDataPoint {
   label: string;
@@ -36,47 +42,66 @@ export function AreaChart({
   showValues = false,
   animate = true,
 }: AreaChartProps) {
-  const { path, areaPath, points, maxValue, minValue } = useMemo(() => {
-    if (data.length === 0)
-      return { path: '', areaPath: '', points: [], maxValue: 0, minValue: 0 };
-
-    const values = data.map(d => d.value);
-    const max = Math.max(...values);
-    const min = Math.min(...values);
-    const range = max - min || 1;
-
-    const padding = 40;
-    const chartWidth = 100;
-    const chartHeight = 100;
-    const stepX = (chartWidth - padding * 2) / (data.length - 1 || 1);
-
-    const pts = data.map((d, i) => ({
-      x: padding + i * stepX,
-      y:
-        chartHeight -
-        padding -
-        ((d.value - min) / range) * (chartHeight - padding * 2),
-      label: d.label,
-      value: d.value,
-    }));
-
-    const linePath = pts
-      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
-      .join(' ');
-
-    const area = `${linePath} L ${pts[pts.length - 1]?.x || padding} ${chartHeight - padding} L ${padding} ${chartHeight - padding} Z`;
-
-    return {
-      path: linePath,
-      areaPath: area,
-      points: pts,
-      maxValue: max,
-      minValue: min,
-    };
-  }, [data]);
-
   const id = useId();
   const gradientId = `area-gradient-${id.replace(/:/g, '')}`;
+
+  const definition = useMemo(
+    () =>
+      defineChart({
+        marks: [
+          areaY(data, {
+            x: 'label',
+            y: 'value',
+            fill: `url(#${gradientId})`,
+            fillOpacity: 1,
+          }),
+          lineY(data, {
+            x: 'label',
+            y: 'value',
+            stroke: color,
+            strokeWidth: 2,
+            points: true,
+          }),
+        ],
+        scales: {
+          x: {
+            scale: () => scalePoint<string>().padding(0.2),
+            axis: showLabels ? { line: false, ticks: { size: 0 } } : false,
+          },
+          y: {
+            scale: scaleLinear,
+            nice: true,
+            grid: showGrid,
+            axis: showValues ? { line: false, ticks: { size: 0 } } : false,
+          },
+        },
+        gradients: [
+          {
+            id: gradientId,
+            y1: 1,
+            y2: 0,
+            stops: [
+              { offset: 0, color: gradientTo },
+              { offset: 1, color: gradientFrom },
+            ],
+          },
+        ],
+        theme: chartTheme,
+        svgAnimation: animate,
+        tooltip,
+      }),
+    [
+      data,
+      gradientId,
+      color,
+      gradientFrom,
+      gradientTo,
+      showGrid,
+      showLabels,
+      showValues,
+      animate,
+    ]
+  );
 
   if (data.length === 0) {
     return (
@@ -90,96 +115,12 @@ export function AreaChart({
   }
 
   return (
-    <div className={cn('relative', className)}>
-      <svg
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        style={{ height, width: '100%' }}
-        className="overflow-visible"
-      >
-        <defs>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={gradientFrom} />
-            <stop offset="100%" stopColor={gradientTo} />
-          </linearGradient>
-        </defs>
-
-        {/* Grid lines */}
-        {showGrid && (
-          <g className="text-muted-foreground/20">
-            {[0, 25, 50, 75, 100].map(y => (
-              <line
-                key={y}
-                x1="40"
-                y1={y}
-                x2="100"
-                y2={y}
-                stroke="currentColor"
-                strokeWidth="0.2"
-                vectorEffect="non-scaling-stroke"
-              />
-            ))}
-          </g>
-        )}
-
-        {/* Area fill */}
-        <path
-          d={areaPath}
-          fill={`url(#${gradientId})`}
-          className={animate ? 'duration-700 animate-in fade-in' : ''}
-        />
-
-        {/* Line */}
-        <path
-          d={path}
-          fill="none"
-          stroke={color}
-          strokeWidth="0.8"
-          vectorEffect="non-scaling-stroke"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={animate ? 'duration-500 animate-in fade-in' : ''}
-        />
-
-        {/* Data points */}
-        {points.map((point, i) => (
-          <circle
-            key={i}
-            cx={point.x}
-            cy={point.y}
-            r="1.2"
-            fill={color}
-            className={cn(
-              'transition-transform hover:scale-150',
-              animate && 'duration-300 animate-in zoom-in'
-            )}
-            style={{ animationDelay: `${i * 50}ms` }}
-          />
-        ))}
-      </svg>
-
-      {/* Labels */}
-      {showLabels && (
-        <div className="mt-2 flex justify-between px-2">
-          {data.map(d => (
-            <span
-              key={d.label}
-              className="truncate text-xs text-muted-foreground"
-              style={{ maxWidth: `${100 / data.length}%` }}
-            >
-              {d.label}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Value indicators */}
-      {showValues && (
-        <div className="absolute right-0 top-0 flex flex-col text-xs text-muted-foreground">
-          <span>{maxValue.toLocaleString()}</span>
-          <span className="mt-auto">{minValue.toLocaleString()}</span>
-        </div>
-      )}
+    <div className={cn('chart-surface relative', className)}>
+      <Chart
+        definition={definition}
+        height={height}
+        ariaLabel={`Activity from ${data[0]?.label} to ${data[data.length - 1]?.label}`}
+      />
     </div>
   );
 }

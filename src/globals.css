@@ -217,6 +217,20 @@
   .loading-spinner {
     @apply h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent;
   }
+
+  .chart-surface {
+    --ts-chart-1: hsl(var(--primary));
+    --ts-chart-2: hsl(var(--accent-foreground));
+    --ts-chart-3: hsl(var(--muted-foreground));
+    --ts-chart-4: hsl(var(--destructive));
+    --ts-chart-5: hsl(var(--ring));
+    --ts-chart-6: hsl(var(--secondary-foreground));
+    --ts-chart-tooltip-background: hsl(var(--popover));
+    --ts-chart-tooltip-color: hsl(var(--popover-foreground));
+    --ts-chart-tooltip-border: 1px solid hsl(var(--border));
+    --ts-chart-tooltip-border-radius: var(--radius);
+    --ts-chart-tooltip-shadow: 0 12px 34px hsl(var(--foreground) / 0.12);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

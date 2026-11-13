@@ -31,6 +31,7 @@ A modern, production-ready React application boilerplate built with Vite, TypeSc
 ### UI & Styling
 
 - **Tailwind CSS 4** - CSS-first utility framework
+- **TanStack Charts** - Typed area, bar, and donut charts
 - **Shadcn/ui** - Accessible component library
 - **Dark Mode** - Built-in theme switching with system preference
 - **Responsive Design** - Mobile-first approach
@@ -272,6 +273,7 @@ bun run lint         # Run Oxlint
 bun run lint:strict  # Fail on lint warnings
 bun run format       # Format with Oxfmt
 bun run format:check # Check formatting
+bun run typecheck    # Run TypeScript checks
 bun run doctor       # Scan React health; fail on errors
 bun run test         # Run tests
 ```
