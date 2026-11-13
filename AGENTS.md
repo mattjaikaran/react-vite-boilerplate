@@ -1,8 +1,10 @@
-# Repository guide
+# Frontend agent guide
 
-This is the single source of agent instructions. `CLAUDE.md` imports it with
-`@AGENTS.md`; do not copy rules into other files. There are no nested
-`AGENTS.md` files, so this file applies to the whole repository. Visual
+Frontend facts for this repository. In a mattstack monorepo this repository is
+`frontend/` and this file is `frontend/AGENTS.md`; the monorepo root `AGENTS.md`
+owns global rules (commits, secrets, branches), and the nearest file wins. There
+are no nested `AGENTS.md` files below this one. `AGENTS.md` is the only agent
+file: do not add `CLAUDE.md`, `.cursorrules`, or another harness adapter. Visual
 guidance lives in [DESIGN.md](DESIGN.md), not in a global skill or another
 project.
 
@@ -19,7 +21,7 @@ feature overview, [DESIGN.md](DESIGN.md) for the visual system, and
 Use Bun for installs and repository scripts, and activate the repository Node
 version with `nvm install && nvm use` (reads `.nvmrc`). `package.json` and
 `bun.lock` are authoritative for exact installed versions and supported
-engines.
+engines. Document every dependency in [DEPENDENCIES.md](DEPENDENCIES.md).
 
 Every dependency and executable CLI must have an exact reviewed version: no
 `latest`, caret/tilde ranges, floating tags, or unpinned `npx`/`bunx`. Prefer
@@ -28,6 +30,9 @@ dependency changes; use `bun install --frozen-lockfile` for reproducible
 installs. Never add `bun add -D` to Makefile recipes. Preserve the existing
 Oxlint/Oxfmt packages, scripts, configurations, and editor settings unless
 explicitly asked to change lint/format tooling.
+
+Browser build configuration (`VITE_*`) is public: the explicit allowlist in
+`src/config/` names the exposed variables, and no credential belongs in it.
 
 ## Commands and local verification
 
@@ -45,6 +50,7 @@ without running it.
 | Strict lint                    | `bun run lint:strict`                                      |
 | Format check / apply           | `bun run format:check` / `bun run format`                  |
 | Existing tests / watch         | `bun run test` / `bun run test:watch`                      |
+| Journey e2e suite / UI         | `bun run test:e2e` / `bun run test:e2e:ui`                 |
 | Convention / dependency checks | `bun run check-conventions` / `bun run check-dependencies` |
 | Agent docs check               | `bun run check-conventions --check AGENT_DOCS`             |
 | Enable committed Git hooks     | `git config core.hooksPath .githooks`                      |
@@ -128,42 +134,35 @@ details are in [docs/backend-contract.md](docs/backend-contract.md).
 
 Tests only for a bug fix, a changed public contract, or permission/boundary
 behavior; no rendering/wiring/mocks/snapshots; at most one new file per task;
-never raise coverage. Do not add new suites, Playwright, MSW, Storybook, or
-permanent tests for scaffolding. Prefer existing tests for an eligible
-regression. Preserve existing tests unless the public contract makes them
-obsolete; update affected contracts, callers, and docs together.
+never raise coverage. Prefer an existing test for an eligible regression.
 
-## Git and commit rules
+- Vitest units cover existing behavior and boundary tests and run with
+  `bun run test`.
+- Playwright browser specs live in `e2e/` and run with `bun run test:e2e`
+  against `bun run dev` on port 3000, configured in `playwright.config.ts`.
+  The JSON reporter writes `test-results/journeys.json` so the backend
+  JOURNEYS gate can read per-step results.
 
-- Use small, scoped Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`,
-  `refactor:`, `test:`. Imperative summary.
-- Keep the subject at most 50 characters and wrap the body at 72.
-- Commit explicit paths; do not mix unrelated changes or generated drift.
-- Never commit secrets, credentials, `.env` files, machine-local configuration,
-  or `.claude/settings.local.json`.
-- Run the local gates before committing, and never force-push shared branches.
-- Enable the committed hook once per clone with `git config core.hooksPath
-  .githooks`; it rejects a missing `AGENTS.md`, an unresolved relative link, a
-  non-import `CLAUDE.md`, or a skill without `name`/`description` frontmatter.
+### Journey tags
 
-## Spec workflow (agent-run)
+One test per journey, tagged `@J-NNN`. Give each journey step a `test.step`
+whose title starts with the step ID, `J-NNN-S<n>: ...`. Never write one test
+per step.
 
-An agent-run task starts from a written spec under [tasks/specs/](tasks/specs/)
-and ends with the repository gate green. The format and ownership rules are in
-[tasks/specs/README.md](tasks/specs/README.md): state the requirement, list the
-files owned, name the verification commands, and keep changes inside that
-boundary. The integration owner runs `bun run gauntlet:quick` plus
-`bun run build` once after all edits land; specs may add `bun run api:check` or
-a focused smoke check when their surface needs it.
+```ts
+test('visitor signs up and signs in', { tag: '@J-001' }, async ({ page }) => {
+  await test.step('J-001-S1: create an account', async () => {
+    // ...
+  });
+  await test.step('J-001-S2: sign in', async () => {
+    // ...
+  });
+});
+```
 
-## Security
-
-Browser configuration (`VITE_*`) is public; never put credentials in it.
-Session credentials stay in HttpOnly cookies, not browser storage or
-handwritten caches. Do not describe cookie sessions as working until the
-backend contract, credentials, CSRF flow, and browser integration have been
-verified. Report suspected vulnerabilities privately instead of publishing
-exploit details in an issue or pull request.
+Keep step titles and tags in sync when a journey step is renamed or removed.
+A test without step titles may carry step tags instead (`@J-001-S1`); skipped
+tests count as no result.
 
 ## React Doctor
 

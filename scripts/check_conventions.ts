@@ -14,7 +14,7 @@
  *   9. NO_USE_STATE_FOR_FORMS — useState for form state (use react-hook-form + zod)
  *  10. NO_INLINE_FETCH — raw fetching outside the generated/transport boundary
  *  11. COMPONENT_SIZE  — component files over 300 lines
- *  12. AGENT_DOCS      — AGENTS.md, CLAUDE.md import, and skill frontmatter
+ *  12. AGENT_DOCS      — AGENTS.md, no harness adapter, and skill frontmatter
  *
  * Usage:
  *   bun run scripts/check_conventions.ts
@@ -351,15 +351,13 @@ function* checkAgentDocs(_files: string[]): Generator<Violation> {
 
   const claudePath = join(PROJECT_ROOT, 'CLAUDE.md');
   if (existsSync(claudePath)) {
-    const claude = readFileSync(claudePath, 'utf-8').trim();
-    if (claude !== '@AGENTS.md') {
-      yield {
-        check: 'AGENT_DOCS',
-        filepath: 'CLAUDE.md',
-        line: 1,
-        message: "CLAUDE.md must contain only '@AGENTS.md'",
-      };
-    }
+    yield {
+      check: 'AGENT_DOCS',
+      filepath: 'CLAUDE.md',
+      line: 1,
+      message:
+        'CLAUDE.md is a second agent file — AGENTS.md is the only one; remove it',
+    };
   }
 
   const skillsDir = join(PROJECT_ROOT, '.claude', 'skills');

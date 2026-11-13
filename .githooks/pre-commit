@@ -1,5 +1,5 @@
 #!/bin/sh
 # Fail when AGENTS.md is missing, a relative link in it does not resolve,
-# CLAUDE.md carries more than the import, or a skill lacks frontmatter.
+# a harness adapter such as CLAUDE.md exists, or a skill lacks frontmatter.
 cd "$(git rev-parse --show-toplevel)" || exit 1
 exec bun run scripts/check_conventions.ts --check AGENT_DOCS

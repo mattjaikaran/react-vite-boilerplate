@@ -7,6 +7,7 @@ listed here. Add a row when you add a dependency.
 | ------------------------------- | -------- |
 | @hey-api/openapi-ts             | 0.99.0   |
 | @hookform/resolvers             | 5.9.1    |
+| @playwright/test                | 1.63.0   |
 | @radix-ui/react-dropdown-menu   | 2.1.1    |
 | @radix-ui/react-label           | 2.1.0    |
 | @radix-ui/react-select          | 2.1.1    |
