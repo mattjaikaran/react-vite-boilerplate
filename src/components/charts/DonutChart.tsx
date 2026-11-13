@@ -63,21 +63,17 @@ export function DonutChart({
               fill: slice => slice.color,
               key: slice => slice.label,
             }),
-            ...(showLabels
-              ? [
-                  radialText(slices, {
-                    angle: 'angle',
-                    radius: 0.78,
-                    text: slice =>
-                      slice.fraction > 0.05
-                        ? `${Math.round(slice.fraction * 100)}%`
-                        : null,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    anchor: 'middle',
-                  }),
-                ]
-              : []),
+            radialText(slices, {
+              angle: 'angle',
+              radius: 0.78,
+              text: slice =>
+                showLabels && slice.fraction > 0.05
+                  ? `${Math.round(slice.fraction * 100)}%`
+                  : null,
+              fontSize: 10,
+              fontWeight: 600,
+              anchor: 'middle',
+            }),
           ],
           scales: {
             angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
