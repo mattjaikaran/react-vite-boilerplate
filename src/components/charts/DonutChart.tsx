@@ -43,14 +43,16 @@ export function DonutChart({
   centerValue,
   animate = true,
 }: DonutChartProps) {
+  // pie() throws on negative values; negatives are excluded from slices and total.
+  const plotted = useMemo(() => data.filter(point => point.value >= 0), [data]);
   const total = useMemo(
-    () => data.reduce((sum, point) => sum + point.value, 0),
-    [data]
+    () => plotted.reduce((sum, point) => sum + point.value, 0),
+    [plotted]
   );
 
   const definition = useMemo(() => {
     const ringThickness = (thickness / 100) * size;
-    const slices = pie(data, { value: 'value' });
+    const slices = pie(plotted, { value: 'value' });
 
     return defineChart({
       marks: [
@@ -86,7 +88,7 @@ export function DonutChart({
       svgAnimation: animate,
       tooltip,
     });
-  }, [data, thickness, size, showLabels, animate]);
+  }, [plotted, thickness, size, showLabels, animate]);
 
   if (data.length === 0 || total === 0) {
     return (
